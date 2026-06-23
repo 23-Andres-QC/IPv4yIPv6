@@ -1,9 +1,6 @@
 import 'ipv4.dart';
 import 'ipv6.dart';
 
-/// Una fila de resultado de subred IPv4 con todos los campos clásicos
-/// (network, hostmin, hostmax, broadcast, hosts/net) más su representación
-/// binaria, para reproducir y mejorar la vista de calculadoras IP clásicas.
 class Ipv4SubnetRow {
   final Ipv4Prefix prefix;
   Ipv4SubnetRow(this.prefix);
@@ -16,9 +13,6 @@ class Ipv4SubnetRow {
   Ipv4Class get classification => network.classification;
 }
 
-/// Resultado de planear subredes a partir de una cantidad deseada de
-/// subredes o de hosts por subred, en vez de un prefijo /q fijo. Conserva
-/// lo pedido y lo realmente entregado para poder explicar redondeos.
 class Ipv4SubnetPlan {
   final List<Ipv4SubnetRow> rows;
   final int newLength;
@@ -44,11 +38,6 @@ class Ipv4SubnettingException implements Exception {
 }
 
 class Ipv4Subnetting {
-  /// Reproduce y generaliza la función "move to" de las calculadoras IP
-  /// clásicas: transición de un prefijo /p a cualquier otro /q.
-  /// - Si q > p: divide la red en 2^(q-p) subredes iguales (todas listadas).
-  /// - Si q < p: agrega hacia la superred /q que contiene la dirección.
-  /// - Si q == p: devuelve la misma red.
   static List<Ipv4SubnetRow> transitionMask(
     Ipv4Address address,
     int originalLength,
@@ -71,19 +60,14 @@ class Ipv4Subnetting {
       }
       return original.splitToLength(newLength).map(Ipv4SubnetRow.new).toList();
     }
-    // Supernetting: la superred que contiene la dirección original.
     final supernet = Ipv4Prefix(address, newLength);
     return [Ipv4SubnetRow(Ipv4Prefix(supernet.network, newLength))];
   }
 
-  /// Subneteo de tamaño fijo: divide [base] en [count] subredes iguales.
   static List<Ipv4SubnetRow> splitFixed(Ipv4Prefix base, int count) {
     return base.splitInto(count).map(Ipv4SubnetRow.new).toList();
   }
 
-  /// Bits adicionales necesarios para obtener al menos [desiredCount]
-  /// subredes (las subredes de igual tamaño solo pueden crearse en
-  /// cantidades que sean potencia de 2).
   static int extraBitsForCount(int desiredCount) {
     if (desiredCount < 1) {
       throw Ipv4SubnettingException('La cantidad de subredes debe ser al menos 1.');
@@ -97,10 +81,6 @@ class Ipv4Subnetting {
     return bits;
   }
 
-  /// Calcula cuántas subredes se necesitan y deriva el nuevo prefijo /q a
-  /// partir de la cantidad deseada (en vez de exigir que el usuario calcule
-  /// /q a mano). Si [desiredCount] no es potencia de 2, se redondea hacia
-  /// arriba y se informa la cantidad real entregada.
   static Ipv4SubnetPlan byDesiredSubnetCount(
     Ipv4Prefix base,
     int desiredCount, {
@@ -127,9 +107,6 @@ class Ipv4Subnetting {
     );
   }
 
-  /// Calcula el prefijo /q más corto que entrega al menos [hostsPerSubnet]
-  /// hosts utilizables por subred, y divide [base] en subredes de ese
-  /// tamaño. Informa cuántas subredes de ese tamaño entran en total.
   static Ipv4SubnetPlan byHostsPerSubnet(
     Ipv4Prefix base,
     int hostsPerSubnet, {
@@ -155,12 +132,8 @@ class Ipv4Subnetting {
     );
   }
 
-  /// VLSM clásico (RFC 4632): asigna, a partir de [base], un bloque a cada
-  /// requerimiento de hosts en [hostRequirements], ordenando de mayor a
-  /// menor demanda para minimizar fragmentación, y devuelve un prefijo por
-  /// requerimiento en el orden original de entrada.
   static List<Ipv4Prefix> vlsm(Ipv4Prefix base, List<int> hostRequirements) {
-    final indexed = <MapEntry<int, int>>[]; // (índiceOriginal, hostsPedidos)
+    final indexed = <MapEntry<int, int>>[];
     for (var i = 0; i < hostRequirements.length; i++) {
       indexed.add(MapEntry(i, hostRequirements[i]));
     }
@@ -174,7 +147,6 @@ class Ipv4Subnetting {
       final hosts = entry.value;
       final neededLength = _smallestPrefixForHosts(hosts);
       final blockSize = 1 << (32 - neededLength);
-      // Alinear el cursor al múltiplo de blockSize.
       final aligned = ((cursor.value + blockSize - 1) ~/ blockSize) * blockSize;
       final candidate = Ipv4Address.fromInt(aligned);
       final candidatePrefix = Ipv4Prefix(candidate, neededLength);
@@ -195,7 +167,7 @@ class Ipv4Subnetting {
     }
     if (hosts == 1) return 32;
     if (hosts == 2) return 31;
-    var needed = hosts + 2; // red + broadcast
+    var needed = hosts + 2;
     var length = 32;
     var size = 1;
     while (size < needed) {
@@ -205,8 +177,6 @@ class Ipv4Subnetting {
     return length;
   }
 
-  /// Agregación / supernetting (RFC 4632): combina prefijos contiguos,
-  /// alineados y del mismo tamaño en superredes, de forma iterativa.
   static List<Ipv4Prefix> aggregate(List<Ipv4Prefix> input) {
     var current = [...input]..sort((a, b) => a.network.value.compareTo(b.network.value));
     var changed = true;
@@ -245,8 +215,6 @@ class Ipv6SubnettingException implements Exception {
 }
 
 class Ipv6Subnetting {
-  /// Transición de prefijo /p a /q para IPv6 (sin broadcast; siempre
-  /// expresado como rango de subred).
   static List<Ipv6Prefix> transitionMask(
     Ipv6Address address,
     int originalLength,
@@ -267,17 +235,12 @@ class Ipv6Subnetting {
     return [Ipv6Prefix(supernet.networkStart, newLength)];
   }
 
-  /// Plan jerárquico típico: sitio /48 → N sucursales /56 → M LANs /64.
   static List<Ipv6Prefix> allocateSites(Ipv6Prefix site, int branchLength) =>
       site.splitToLength(branchLength);
 
   static List<Ipv6Prefix> allocateLans(Ipv6Prefix branch, {int lanLength = 64}) =>
       branch.splitToLength(lanLength);
 
-  /// Igual que en IPv4: a partir de cuántas subredes se necesitan, deriva
-  /// el prefijo /q correspondiente (redondeando a la siguiente potencia de
-  /// 2, ya que las subredes de igual tamaño solo pueden crearse en esas
-  /// cantidades).
   static int extraBitsForCount(int desiredCount) {
     if (desiredCount < 1) {
       throw Ipv6SubnettingException('La cantidad de subredes debe ser al menos 1.');
@@ -318,8 +281,6 @@ class Ipv6Subnetting {
   }
 }
 
-/// Equivalente a [Ipv4SubnetPlan] para IPv6 (no hay noción de hosts por
-/// subred al no existir broadcast ni resta de direcciones reservadas).
 class Ipv6SubnetPlan {
   final List<Ipv6Prefix> rows;
   final int newLength;

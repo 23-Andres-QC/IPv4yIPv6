@@ -1,4 +1,3 @@
-/// Direcciones IPv4 (RFC 791) con soporte CIDR (RFC 4632).
 class Ipv4FormatException implements Exception {
   final String message;
   Ipv4FormatException(this.message);
@@ -7,7 +6,6 @@ class Ipv4FormatException implements Exception {
 }
 
 class Ipv4Address implements Comparable<Ipv4Address> {
-  /// Valor de 32 bits sin signo almacenado en un int de Dart (seguro: cabe en 53 bits).
   final int value;
 
   const Ipv4Address(this.value);
@@ -73,7 +71,6 @@ class Ipv4Address implements Comparable<Ipv4Address> {
   @override
   String toString() => dotted;
 
-  /// Clasificación de la dirección según RFC 1918, RFC 5737, RFC 3927, etc.
   Ipv4Class get classification {
     if (value == 0) return Ipv4Class.unspecified;
     if (value == 0xFFFFFFFF) return Ipv4Class.broadcastLimited;
@@ -142,8 +139,6 @@ extension Ipv4ClassLabel on Ipv4Class {
   }
 }
 
-/// Prefijo / subred IPv4 en notación CIDR (RFC 4632), con caso especial
-/// /31 para enlaces punto a punto (RFC 3021) y /32 como host route.
 class Ipv4Prefix {
   final Ipv4Address address;
   final int length;
@@ -177,7 +172,6 @@ class Ipv4Prefix {
 
   BigInt get totalAddresses => BigInt.two.pow(32 - length);
 
-  /// Reglas RFC 3021 (/31) y caso /32 (host route).
   int get usableHostCount {
     if (length <= 30) {
       final total = 1 << (32 - length);
@@ -192,18 +186,17 @@ class Ipv4Prefix {
   Ipv4Address? get firstUsable {
     if (length <= 30) return network + 1;
     if (length == 31) return network;
-    return network; // /32
+    return network;
   }
 
   Ipv4Address? get lastUsable {
     if (length <= 30) return broadcastAddress - 1;
     if (length == 31) return broadcastAddress;
-    return network; // /32
+    return network;
   }
 
   bool contains(Ipv4Address ip) => (ip & mask) == network;
 
-  /// Divide esta red en [count] subredes de igual tamaño (debe ser potencia de 2).
   List<Ipv4Prefix> splitInto(int count) {
     final bits = _log2Exact(count);
     final newLength = length + bits;
@@ -217,7 +210,6 @@ class Ipv4Prefix {
     );
   }
 
-  /// Divide a un nuevo prefijo (más largo) explícito.
   List<Ipv4Prefix> splitToLength(int newLength) {
     if (newLength < length || newLength > 32) {
       throw Ipv4FormatException('Nueva longitud inválida.');

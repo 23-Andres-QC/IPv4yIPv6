@@ -1,6 +1,5 @@
 import 'ipv4.dart';
 
-/// Direcciones IPv6 de 128 bits (RFC 4291) con texto canónico (RFC 5952).
 class Ipv6FormatException implements Exception {
   final String message;
   Ipv6FormatException(this.message);
@@ -11,7 +10,6 @@ class Ipv6FormatException implements Exception {
 class Ipv6Address implements Comparable<Ipv6Address> {
   static final BigInt _mask128 = (BigInt.one << 128) - BigInt.one;
 
-  /// Valor de 128 bits sin signo.
   final BigInt value;
 
   Ipv6Address(BigInt v) : value = v & _mask128;
@@ -24,14 +22,11 @@ class Ipv6Address implements Comparable<Ipv6Address> {
     }
   }
 
-  /// Parser tolerante a "::", forma completa y forma mixta con IPv4 embebida
-  /// (RFC 4291 §2.2).
   factory Ipv6Address.parse(String text) {
     var input = text.trim().toLowerCase();
     if (input.isEmpty) {
       throw Ipv6FormatException('Dirección vacía.');
     }
-    // Quitar scope id tipo %eth0 si viene de una dirección link-local real.
     final pct = input.indexOf('%');
     if (pct != -1) input = input.substring(0, pct);
 
@@ -106,9 +101,6 @@ class Ipv6Address implements Comparable<Ipv6Address> {
   String get fullForm =>
       groups.map((g) => g.toRadixString(16).padLeft(4, '0')).join(':');
 
-  /// Representación canónica según RFC 5952: minúsculas, sin ceros a la
-  /// izquierda, "::" para la corrida más larga de grupos en cero (longitud
-  /// mínima 2, la más larga; en empate, la primera).
   String get canonical {
     final g = groups;
     int bestStart = -1, bestLen = 0;
@@ -138,8 +130,6 @@ class Ipv6Address implements Comparable<Ipv6Address> {
     return '$left::$right';
   }
 
-  /// Forma mixta recomendada por RFC 5952 cuando los últimos 32 bits son una
-  /// IPv4 embebida bajo un prefijo /96 (IPv4-mapped o WKP NAT64).
   String get mixedFormIfApplicable {
     final cls = classification;
     if (cls != Ipv6Class.ipv4Mapped && cls != Ipv6Class.nat64WellKnown) {
@@ -151,8 +141,6 @@ class Ipv6Address implements Comparable<Ipv6Address> {
     return '$headText$sep${ipv4.dotted}';
   }
 
-  /// Compresión RFC 5952 de una lista parcial de grupos de 16 bits (sin el
-  /// requisito de completar 8 grupos), usada para construir formas mixtas.
   static String _compressGroups(List<int> g) {
     int bestStart = -1, bestLen = 0, curStart = -1, curLen = 0;
     for (var i = 0; i < g.length; i++) {
@@ -207,8 +195,6 @@ class Ipv6Address implements Comparable<Ipv6Address> {
     return (this & mask) == (net & mask);
   }
 
-  /// Clasificación según RFC 4291, RFC 4193, RFC 3849, RFC 6052, RFC 3056,
-  /// RFC 8215.
   Ipv6Class get classification {
     if (value == BigInt.zero) return Ipv6Class.unspecified;
     if (value == BigInt.one) return Ipv6Class.loopback;
@@ -308,7 +294,6 @@ class Ipv6Prefix {
 
   bool contains(Ipv6Address ip) => (ip & mask) == networkStart;
 
-  /// Cantidad de subprefijos /[childLength] contenidos en este prefijo.
   BigInt countOfSubPrefixes(int childLength) {
     if (childLength < length) {
       throw Ipv6FormatException('La subred hija debe ser más específica (mayor prefijo).');

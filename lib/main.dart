@@ -61,7 +61,7 @@ class _HomeShellState extends State<HomeShell> {
             labelType: NavigationRailLabelType.all,
             leading: const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
-              child: Icon(Icons.hub, size: 32),
+              child: Image(image: AssetImage('assets/icon/logo.png'), width: 40, height: 40),
             ),
             destinations: _destinations,
           ),

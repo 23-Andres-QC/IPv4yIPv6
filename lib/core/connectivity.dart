@@ -26,9 +26,6 @@ class ConnectivityEndpoint {
   ConnectivityEndpoint({this.v4, this.v6, this.dualStack = false, this.hasNat64Or6 = false});
 }
 
-/// Motor de decisión de conectividad: separa "misma familia + mismo enlace",
-/// "misma familia + ruteo", "dual-stack" y "traducción/túnel" como casos
-/// explícitos, en vez de asumir que coincidencia de prefijo basta.
 class ConnectivityEngine {
   static ConnectivityResult evaluate(ConnectivityEndpoint a, ConnectivityEndpoint b) {
     final aHasV4 = a.v4 != null;
@@ -43,7 +40,6 @@ class ConnectivityEngine {
       return _evaluateIpv6(a.v6!, b.v6!);
     }
 
-    // Familias distintas.
     if (a.dualStack && b.dualStack) {
       return ConnectivityResult(
         ConnectivityKind.dualStackCommonFamily,

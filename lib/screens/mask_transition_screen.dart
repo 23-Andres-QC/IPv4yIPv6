@@ -13,12 +13,6 @@ class _InputException implements Exception {
 
 enum _Mode { byPrefix, byCount, byHosts }
 
-/// Pantalla que generaliza la clásica función "Netmask for sub/supernet,
-/// move to:" de las calculadoras IP: a partir de una red base /p, permite
-/// llegar al resultado deseado de tres formas distintas:
-///  - indicando directamente el prefijo destino /q,
-///  - indicando cuántas subredes se necesitan (el prefijo se deriva),
-///  - indicando cuántos hosts utilizables se necesitan por subred (IPv4).
 class MaskTransitionScreen extends StatefulWidget {
   const MaskTransitionScreen({super.key});
   @override
@@ -68,7 +62,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
 
         if (isIpv6) {
           final addr = Ipv6Address.parse(addressCtrl.text);
-          final base = Ipv6Prefix(addr, p); // valida 0..128
+          final base = Ipv6Prefix(addr, p);
           switch (mode) {
             case _Mode.byPrefix:
               final q = _parseRequiredInt(newPrefixCtrl.text, 'El prefijo destino');
@@ -92,7 +86,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
           }
         } else {
           final addr = Ipv4Address.parse(addressCtrl.text);
-          final base = Ipv4Prefix(addr, p); // valida 0..32
+          final base = Ipv4Prefix(addr, p);
           switch (mode) {
             case _Mode.byPrefix:
               final q = _parseRequiredInt(newPrefixCtrl.text, 'El prefijo destino');

@@ -7,6 +7,6 @@ void main() {
   testWidgets('La app arranca y muestra la calculadora por defecto', (WidgetTester tester) async {
     await tester.pumpWidget(const IpToolkitApp());
     expect(find.text('Calculadora de direcciones'), findsOneWidget);
-    expect(find.byIcon(Icons.hub), findsOneWidget);
+    expect(find.byType(Image), findsOneWidget);
   });
 }

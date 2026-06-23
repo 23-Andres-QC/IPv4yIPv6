@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Construye los spans coloreados de los 32 bits de una IPv4, agrupados en
-/// octetos separados por '.', resaltando los bits de prefijo/máscara.
 List<InlineSpan> ipv4BitSpans(int value, int prefixLength, {required Color prefixColor, Color hostColor = Colors.grey}) {
   final bits = value.toRadixString(2).padLeft(32, '0');
   final spans = <InlineSpan>[];
@@ -21,9 +19,6 @@ List<InlineSpan> ipv4BitSpans(int value, int prefixLength, {required Color prefi
   return spans;
 }
 
-/// Equivalente para IPv6: 128 bits agrupados en 16 grupos de 8 bits
-/// separados por '.', con los grupos de 16 bits remarcados cada 16 bits con
-/// un espacio para facilitar lectura.
 List<InlineSpan> ipv6BitSpans(BigInt value, int prefixLength, {required Color prefixColor, Color hostColor = Colors.grey}) {
   final bits = value.toRadixString(2).padLeft(128, '0');
   final spans = <InlineSpan>[];
