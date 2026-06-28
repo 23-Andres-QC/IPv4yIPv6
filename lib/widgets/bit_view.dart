@@ -41,27 +41,53 @@ List<InlineSpan> ipv6BitSpans(BigInt value, int prefixLength, {required Color pr
 
 class BitRow extends StatelessWidget {
   final String label;
+  final String sublabel;
   final List<InlineSpan> spans;
   final String? trailing;
-  const BitRow({super.key, required this.label, required this.spans, this.trailing});
+
+  const BitRow({
+    super.key,
+    required this.label,
+    this.sublabel = '',
+    required this.spans,
+    this.trailing,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 110,
-            child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+            width: 120,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                if (sublabel.isNotEmpty)
+                  Text(sublabel, style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
+              ],
+            ),
           ),
           Expanded(
             child: SelectableText.rich(
-              TextSpan(style: const TextStyle(fontFamily: 'monospace', fontSize: 13), children: spans),
+              TextSpan(
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                children: spans,
+              ),
             ),
           ),
-          if (trailing != null) Text(trailing!, style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+          if (trailing != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Text(
+                trailing!,
+                style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.bold, fontFamily: 'monospace', fontSize: 12),
+              ),
+            ),
         ],
       ),
     );

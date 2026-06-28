@@ -174,7 +174,7 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
             SizedBox(
               width: 160,
               child: DropdownButtonFormField<int>(
-                initialValue: int.tryParse(prefixLenCtrl.text) ?? 96,
+                value: int.tryParse(prefixLenCtrl.text) ?? 96,
                 decoration: const InputDecoration(labelText: 'PL', border: OutlineInputBorder()),
                 items: rfc6052AllowedPrefixLengths
                     .map((p) => DropdownMenuItem(value: p, child: Text('/$p')))
@@ -198,7 +198,7 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
       SizedBox(
         width: 200,
         child: DropdownButtonFormField<int>(
-          initialValue: int.tryParse(prefixLenCtrl.text) ?? 96,
+          value: int.tryParse(prefixLenCtrl.text) ?? 96,
           decoration: const InputDecoration(labelText: 'PL si es prefijo de red específico (RFC 6052)', border: OutlineInputBorder()),
           items: rfc6052AllowedPrefixLengths
               .map((p) => DropdownMenuItem(value: p, child: Text('/$p')))
