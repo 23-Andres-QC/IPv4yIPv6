@@ -169,6 +169,7 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
   ConnectivityResult? result;
   String? error;
   bool _showDetails = false;
+  bool _showExamples = false;
 
   void _evaluate() {
     setState(() {
@@ -233,46 +234,43 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
           const Text('Ingresa dos direcciones IP y te diremos cómo pueden comunicarse entre sí.'),
           const SizedBox(height: 20),
 
-          // ── Ejemplos rápidos ──────────────────────────────────────────
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: theme.colorScheme.outlineVariant),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(children: [
-                  Icon(Icons.bolt, size: 18, color: theme.colorScheme.primary),
-                  const SizedBox(width: 6),
-                  Text('Ejemplos rápidos',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
-                ]),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final p in _presets)
-                      Tooltip(
-                        message: p.description,
-                        child: ActionChip(
-                          label: Text(p.label),
-                          avatar: const Icon(Icons.play_arrow, size: 16),
-                          onPressed: () => _applyPreset(p),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                const Text('Toca cualquier ejemplo para cargarlo automáticamente.',
-                    style: TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
+          // ── Ejemplos rápidos (colapsable) ────────────────────────────
+          OutlinedButton.icon(
+            onPressed: () => setState(() => _showExamples = !_showExamples),
+            icon: Icon(_showExamples ? Icons.expand_less : Icons.bolt, size: 16),
+            label: Text(_showExamples ? 'Ocultar ejemplos' : 'Ver ejemplos de prueba'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             ),
           ),
+
+          if (_showExamples) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: theme.colorScheme.outlineVariant),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Selecciona un caso para cargarlo automáticamente:',
+                      style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      for (final p in _presets)
+                        _exampleCard(p, theme),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
 
           const SizedBox(height: 20),
 
@@ -322,10 +320,87 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
               ),
             ),
 
-          if (result != null) _buildResult(result!, theme),
+          if (result != null) ...[
+            // Cabecera de resultado
+            Row(children: [
+              const Icon(Icons.assessment_outlined, size: 18, color: Colors.black54),
+              const SizedBox(width: 6),
+              const Text('Resultado del análisis',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            ]),
+            const SizedBox(height: 6),
+            // Leyenda de colores
+            Wrap(
+              spacing: 12,
+              runSpacing: 4,
+              children: [
+                _legendChip(Colors.green.shade600, 'Comunicación directa'),
+                _legendChip(Colors.blue.shade600, 'Necesita router'),
+                _legendChip(Colors.orange.shade600, 'Necesita traductor'),
+                _legendChip(Colors.red.shade600, 'Sin camino posible'),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _buildResult(result!, theme),
+          ],
         ],
       ),
     );
+  }
+
+  Widget _exampleCard(_Preset p, ThemeData theme) {
+    final icons = {
+      'Misma red': Icons.cable_rounded,
+      'Redes distintas': Icons.router_rounded,
+      'Sin camino': Icons.block_rounded,
+      'Con traductor': Icons.translate_rounded,
+      'Dual-stack': Icons.swap_horiz_rounded,
+    };
+    final colors = {
+      'Misma red': Colors.green,
+      'Redes distintas': Colors.blue,
+      'Sin camino': Colors.red,
+      'Con traductor': Colors.orange,
+      'Dual-stack': Colors.green,
+    };
+    final icon = icons[p.label] ?? Icons.play_circle_outline;
+    final color = colors[p.label] ?? theme.colorScheme.primary;
+
+    return InkWell(
+      onTap: () {
+        _applyPreset(p);
+        setState(() => _showExamples = false);
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        width: 140,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(p.label,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 13, color: color)),
+            const SizedBox(height: 3),
+            Text(p.description,
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade600, height: 1.3)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _legendChip(Color color, String label) {
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+      const SizedBox(width: 4),
+      Text(label, style: TextStyle(fontSize: 11, color: Colors.grey.shade700)),
+    ]);
   }
 
   // ── Result card ─────────────────────────────────────────────────────────
@@ -625,32 +700,30 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('¿Cuándo marcar cada opción?'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _dialogSection(
-              icon: Icons.layers_outlined,
-              color: Colors.blue,
-              title: 'Dual-stack',
-              body: 'Márcalo si el dispositivo tiene configuradas AMBAS versiones de IP al mismo tiempo.\n\n'
-                  '✅ Márcalo cuando sea:\n'
-                  '• Una PC o laptop moderna con IPv4 e IPv6 activos\n'
-                  '• Un servidor o router reciente con doble configuración\n\n'
-                  '❌ No lo marques si solo usa IPv4 o solo IPv6.',
-            ),
-            const Divider(height: 24),
-            _dialogSection(
-              icon: Icons.translate_outlined,
-              color: Colors.orange,
-              title: 'Con traductor (NAT64 / SIIT / DS-Lite / MAP)',
-              body: 'Márcalo si en tu red hay un equipo especial que convierte tráfico de IPv4 a IPv6 o viceversa.\n\n'
-                  '✅ Márcalo cuando sea:\n'
-                  '• Una red empresarial o universitaria con gateway NAT64\n'
-                  '• Un proveedor de internet con DS-Lite\n\n'
-                  '❌ No lo marques si es una red doméstica normal. Es poco común.',
-            ),
-          ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _dialogSection(
+                icon: Icons.layers_outlined,
+                color: Colors.blue,
+                title: 'Dual-stack',
+                description: 'Márcalo si el dispositivo tiene configuradas AMBAS versiones de IP al mismo tiempo.',
+                siItems: ['Una PC o laptop moderna con IPv4 e IPv6 activos', 'Un servidor o router reciente con doble configuración'],
+                noText: 'No lo marques si el dispositivo solo usa IPv4 o solo IPv6.',
+              ),
+              const Divider(height: 28),
+              _dialogSection(
+                icon: Icons.translate_outlined,
+                color: Colors.orange,
+                title: 'Con traductor (NAT64 / SIIT / DS-Lite / MAP)',
+                description: 'Márcalo si en tu red hay un equipo especial que convierte tráfico de IPv4 a IPv6 o viceversa.',
+                siItems: ['Una red empresarial o universitaria con gateway NAT64', 'Un proveedor de internet con DS-Lite'],
+                noText: 'No lo marques si es una red doméstica normal. Es poco común.',
+              ),
+            ],
+          ),
         ),
         actions: [
           FilledButton(
@@ -666,7 +739,9 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
     required IconData icon,
     required Color color,
     required String title,
-    required String body,
+    required String description,
+    required List<String> siItems,
+    required String noText,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -674,10 +749,30 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
         Row(children: [
           Icon(icon, size: 18, color: color),
           const SizedBox(width: 8),
-          Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: color)),
+          Expanded(child: Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: color))),
         ]),
         const SizedBox(height: 8),
-        Text(body, style: const TextStyle(fontSize: 13, height: 1.5)),
+        Text(description, style: const TextStyle(fontSize: 13, height: 1.5)),
+        const SizedBox(height: 10),
+        // Cuándo SÍ
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Márcalo cuando sea:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Colors.green.shade700)),
+            const SizedBox(height: 4),
+            for (final item in siItems)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text('• $item', style: const TextStyle(fontSize: 12, height: 1.4)),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // Cuándo NO
+        Text(
+          noText,
+          style: TextStyle(fontSize: 12, color: Colors.red.shade800, height: 1.4),
+        ),
       ],
     );
   }
