@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/ipv4.dart';
 import '../core/ipv6.dart';
@@ -340,6 +341,34 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
     );
   }
 
+  Future<void> _copyToClipboard(String label, String value) async {
+    await Clipboard.setData(ClipboardData(text: value));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$label copiado'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Widget _copyButton(String label, String value, {IconData icon = Icons.copy}) {
+    return OutlinedButton.icon(
+      onPressed: () => _copyToClipboard(label, value),
+      icon: Icon(icon, size: 16),
+      label: Text(label),
+      style: OutlinedButton.styleFrom(
+        visualDensity: VisualDensity.compact,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      ),
+    );
+  }
+
+  Widget _copyActions(List<Widget> actions) {
+    return Wrap(spacing: 8, runSpacing: 8, children: actions);
+  }
+
   String _summaryOneLine() {
     if (!hasMaskTransition) {
       if (isIpv6) {
@@ -464,7 +493,17 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
       children: [
         _reportCard(
           children: [
-            BitRow(
+            _copyActions([
+              _copyButton('Copiar base', _ipv4BaseText(base)),
+              if (hasEffectiveMaskTransition)
+                _copyButton(
+                  'Copiar todo',
+                  _ipv4FullText(base, rows),
+                  icon: Icons.content_copy,
+                ),
+            ]),
+            const SizedBox(height: 10),
+            _copyableBitRow(
               label: 'Address',
               spans: ipv4BitSpans(
                 input.value,
@@ -472,8 +511,9 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
                 prefixColor: Colors.green,
               ),
               trailing: input.dotted,
+              copyValue: input.dotted,
             ),
-            BitRow(
+            _copyableBitRow(
               label: 'Netmask',
               spans: ipv4BitSpans(
                 p.mask.value,
@@ -481,8 +521,9 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
                 prefixColor: Colors.red,
               ),
               trailing: '${p.mask.dotted} = /${p.length}',
+              copyValue: '${p.mask.dotted} = /${p.length}',
             ),
-            BitRow(
+            _copyableBitRow(
               label: 'Wildcard',
               spans: ipv4BitSpans(
                 p.wildcard.value,
@@ -490,21 +531,33 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
                 prefixColor: Colors.grey,
               ),
               trailing: p.wildcard.dotted,
+              copyValue: p.wildcard.dotted,
             ),
             const Text('=>', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            _ipv4NetworkLines(base, showNetmask: false),
+            _ipv4NetworkLines(base, showNetmask: false, copyFields: true),
             if (hasEffectiveMaskTransition) ..._buildIpv4TransitionSummary(),
           ],
         ),
         if (hasEffectiveMaskTransition) ...[
           const SizedBox(height: 12),
-          Text(
-            'Subnets: ${rows.length}   Hosts: $totalHosts',
-            style: const TextStyle(
-              color: Colors.blue,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Subnets: ${rows.length}   Hosts: $totalHosts',
+                  style: const TextStyle(
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              _copyButton(
+                'Copiar subredes',
+                _ipv4AllSubnetsText(rows),
+                icon: Icons.copy_all,
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           ...rows.asMap().entries.map(
@@ -513,6 +566,77 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
         ],
       ],
     );
+  }
+
+  String _ipv4BaseText(Ipv4SubnetRow row) {
+    final p = row.prefix;
+    return [
+      'Address: ${v4Input!.dotted}',
+      'Netmask: ${p.mask.dotted} = /${p.length}',
+      'Wildcard: ${p.wildcard.dotted}',
+      'Network: ${row.network.dotted}/${p.length}',
+      'HostMin: ${row.hostMin!.dotted}',
+      'HostMax: ${row.hostMax!.dotted}',
+      'Broadcast: ${row.broadcast.dotted}',
+      'Hosts/Net: ${row.hostCount}',
+      'Clase: ${row.classification.label}',
+    ].join('\n');
+  }
+
+  String _ipv4SubnetText(int index, Ipv4SubnetRow row) {
+    final p = row.prefix;
+    return [
+      '$index. ${row.network.dotted}/${p.length}',
+      'Netmask: ${p.mask.dotted} = /${p.length}',
+      'Wildcard: ${p.wildcard.dotted}',
+      'Network: ${row.network.dotted}/${p.length}',
+      'HostMin: ${row.hostMin!.dotted}',
+      'HostMax: ${row.hostMax!.dotted}',
+      'Broadcast: ${row.broadcast.dotted}',
+      'Hosts/Net: ${row.hostCount}',
+      'Clase: ${row.classification.label}',
+    ].join('\n');
+  }
+
+  String _ipv4AllSubnetsText(List<Ipv4SubnetRow> rows) {
+    return rows
+        .asMap()
+        .entries
+        .map((entry) => _ipv4SubnetText(entry.key + 1, entry.value))
+        .join('\n\n');
+  }
+
+  String _ipv4FullText(Ipv4SubnetRow base, List<Ipv4SubnetRow> rows) {
+    final parts = [_ipv4BaseText(base)];
+    if (rows.isNotEmpty) {
+      parts.add('Subnets: ${rows.length}');
+      parts.add(_ipv4AllSubnetsText(rows));
+    }
+    return parts.join('\n\n');
+  }
+
+  String _ipv4FieldText(Ipv4SubnetRow row, String field) {
+    final p = row.prefix;
+    switch (field) {
+      case 'Netmask':
+        return '${p.mask.dotted} = /${p.length}';
+      case 'Network':
+        return '${row.network.dotted}/${p.length}';
+      case 'HostMin':
+        return row.hostMin!.dotted;
+      case 'HostMax':
+        return row.hostMax!.dotted;
+      case 'Broadcast':
+        return row.broadcast.dotted;
+      case 'Wildcard':
+        return p.wildcard.dotted;
+      default:
+        return '';
+    }
+  }
+
+  Widget _ipv4SubnetCopyActions(int index, Ipv4SubnetRow row) {
+    return _copyActions([_copyButton('Subred', _ipv4SubnetText(index, row))]);
   }
 
   List<Widget> _buildIpv4TransitionSummary() {
@@ -526,7 +650,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       const SizedBox(height: 6),
-      BitRow(
+      _copyableBitRow(
         label: 'Netmask',
         spans: ipv4BitSpans(
           targetMask.value,
@@ -534,8 +658,9 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
           prefixColor: Colors.red,
         ),
         trailing: '${targetMask.dotted} = /$resolvedNewLength',
+        copyValue: '${targetMask.dotted} = /$resolvedNewLength',
       ),
-      BitRow(
+      _copyableBitRow(
         label: 'Wildcard',
         spans: ipv4BitSpans(
           targetWildcard.value,
@@ -543,6 +668,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
           prefixColor: Colors.grey,
         ),
         trailing: targetWildcard.dotted,
+        copyValue: targetWildcard.dotted,
       ),
     ];
   }
@@ -578,13 +704,17 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
     );
   }
 
-  Widget _ipv4NetworkLines(Ipv4SubnetRow row, {bool showNetmask = true}) {
+  Widget _ipv4NetworkLines(
+    Ipv4SubnetRow row, {
+    bool showNetmask = true,
+    bool copyFields = false,
+  }) {
     final p = row.prefix;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (showNetmask)
-          BitRow(
+          _copyableBitRow(
             label: 'Netmask',
             spans: ipv4BitSpans(
               p.mask.value,
@@ -592,8 +722,9 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
               prefixColor: Colors.red,
             ),
             trailing: '${p.mask.dotted} = /${p.length}',
+            copyValue: copyFields ? _ipv4FieldText(row, 'Netmask') : null,
           ),
-        BitRow(
+        _copyableBitRow(
           label: 'Network',
           spans: ipv4BitSpans(
             row.network.value,
@@ -601,8 +732,9 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
             prefixColor: Colors.green,
           ),
           trailing: '${row.network.dotted}/${p.length}',
+          copyValue: copyFields ? _ipv4FieldText(row, 'Network') : null,
         ),
-        BitRow(
+        _copyableBitRow(
           label: 'HostMin',
           spans: ipv4BitSpans(
             row.hostMin!.value,
@@ -610,8 +742,9 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
             prefixColor: Colors.green,
           ),
           trailing: row.hostMin!.dotted,
+          copyValue: copyFields ? _ipv4FieldText(row, 'HostMin') : null,
         ),
-        BitRow(
+        _copyableBitRow(
           label: 'HostMax',
           spans: ipv4BitSpans(
             row.hostMax!.value,
@@ -619,8 +752,9 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
             prefixColor: Colors.green,
           ),
           trailing: row.hostMax!.dotted,
+          copyValue: copyFields ? _ipv4FieldText(row, 'HostMax') : null,
         ),
-        BitRow(
+        _copyableBitRow(
           label: 'Broadcast',
           spans: ipv4BitSpans(
             row.broadcast.value,
@@ -628,6 +762,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
             prefixColor: Colors.green,
           ),
           trailing: row.broadcast.dotted,
+          copyValue: copyFields ? _ipv4FieldText(row, 'Broadcast') : null,
         ),
         Text(
           'Hosts/Net: ${row.hostCount}   ${row.classification.label}',
@@ -637,6 +772,55 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _copyableBitRow({
+    required String label,
+    required List<InlineSpan> spans,
+    required String trailing,
+    String? copyValue,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          Expanded(
+            child: SelectableText.rich(
+              TextSpan(
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                children: spans,
+              ),
+            ),
+          ),
+          Text(
+            trailing,
+            style: const TextStyle(
+              color: Colors.green,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          if (copyValue != null) ...[
+            const SizedBox(width: 4),
+            IconButton(
+              onPressed: () => _copyToClipboard(label, copyValue),
+              icon: const Icon(Icons.copy, size: 16),
+              tooltip: 'Copiar $label',
+              visualDensity: VisualDensity.compact,
+              constraints: const BoxConstraints.tightFor(width: 32, height: 28),
+              padding: EdgeInsets.zero,
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -679,7 +863,9 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            _ipv4NetworkLines(row),
+            _ipv4SubnetCopyActions(index, row),
+            const SizedBox(height: 8),
+            _ipv4NetworkLines(row, copyFields: true),
           ],
         ),
       ),
@@ -694,9 +880,22 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
       children: [
         _reportCard(
           children: [
-            Text('Address: ${input.canonical}/${base.length}'),
-            Text('Network: ${base.networkStart.canonical}/${base.length}'),
-            Text('End: ${base.networkEnd.canonical}'),
+            _copyActions([
+              _copyButton('Copiar base', _ipv6BaseText(base)),
+              if (hasEffectiveMaskTransition)
+                _copyButton(
+                  'Copiar todo',
+                  _ipv6FullText(base, rows),
+                  icon: Icons.content_copy,
+                ),
+            ]),
+            const SizedBox(height: 10),
+            _copyableTextRow('Address', '${input.canonical}/${base.length}'),
+            _copyableTextRow(
+              'Network',
+              '${base.networkStart.canonical}/${base.length}',
+            ),
+            _copyableTextRow('End', base.networkEnd.canonical),
             if (hasEffectiveMaskTransition) ...[
               const Divider(height: 22),
               Text(
@@ -707,18 +906,103 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
           ],
         ),
         if (hasEffectiveMaskTransition) ...[
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Subnets: ${rows.length}',
+                  style: const TextStyle(
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              _copyButton(
+                'Copiar subredes',
+                _ipv6AllSubnetsText(rows),
+                icon: Icons.copy_all,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           ...rows.asMap().entries.map(
             (entry) => _ipv6SubnetCard(entry.key + 1, entry.value),
           ),
-          Text(
-            'Subnets: ${rows.length}',
-            style: const TextStyle(
-              color: Colors.blue,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
         ],
       ],
+    );
+  }
+
+  String _ipv6BaseText(Ipv6Prefix base) {
+    return [
+      'Address: ${v6Input!.canonical}/${base.length}',
+      'Network: ${base.networkStart.canonical}/${base.length}',
+      'End: ${base.networkEnd.canonical}',
+      'Direcciones: ${base.totalAddresses}',
+    ].join('\n');
+  }
+
+  String _ipv6SubnetText(int index, Ipv6Prefix p) {
+    return [
+      '$index. ${p.networkStart.canonical}/${p.length}',
+      'Inicio: ${p.networkStart.canonical}',
+      'Fin: ${p.networkEnd.canonical}',
+      'Direcciones: ${p.totalAddresses}',
+    ].join('\n');
+  }
+
+  String _ipv6AllSubnetsText(List<Ipv6Prefix> rows) {
+    return rows
+        .asMap()
+        .entries
+        .map((entry) => _ipv6SubnetText(entry.key + 1, entry.value))
+        .join('\n\n');
+  }
+
+  String _ipv6FullText(Ipv6Prefix base, List<Ipv6Prefix> rows) {
+    final parts = [_ipv6BaseText(base)];
+    if (rows.isNotEmpty) {
+      parts.add('Subnets: ${rows.length}');
+      parts.add(_ipv6AllSubnetsText(rows));
+    }
+    return parts.join('\n\n');
+  }
+
+  Widget _ipv6SubnetCopyActions(int index, Ipv6Prefix p) {
+    return _copyActions([_copyButton('Subred', _ipv6SubnetText(index, p))]);
+  }
+
+  Widget _copyableTextRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: SelectableText.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: '$label: ',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  TextSpan(text: value),
+                ],
+              ),
+              maxLines: 1,
+            ),
+          ),
+          const SizedBox(width: 4),
+          IconButton(
+            onPressed: () => _copyToClipboard(label, value),
+            icon: const Icon(Icons.copy, size: 16),
+            tooltip: 'Copiar $label',
+            visualDensity: VisualDensity.compact,
+            constraints: const BoxConstraints.tightFor(width: 32, height: 28),
+            padding: EdgeInsets.zero,
+          ),
+        ],
+      ),
     );
   }
 
@@ -763,9 +1047,15 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            Text('Inicio: ${p.networkStart.canonical}'),
-            Text('Fin: ${p.networkEnd.canonical}'),
-            Text('Direcciones: ${p.totalAddresses}'),
+            _ipv6SubnetCopyActions(index, p),
+            const SizedBox(height: 8),
+            _copyableTextRow(
+              'Prefijo',
+              '${p.networkStart.canonical}/${p.length}',
+            ),
+            _copyableTextRow('Inicio', p.networkStart.canonical),
+            _copyableTextRow('Fin', p.networkEnd.canonical),
+            _copyableTextRow('Direcciones', p.totalAddresses.toString()),
           ],
         ),
       ),
