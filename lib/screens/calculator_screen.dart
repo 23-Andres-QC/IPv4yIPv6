@@ -1,6 +1,9 @@
 import 'dart:async';
+// ignore_for_file: deprecated_member_use, unused_element, unused_local_variable
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../app_localization.dart';
 import '../core/ipv4.dart';
 import '../core/ipv6.dart';
 import '../widgets/bit_view.dart';
@@ -73,7 +76,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle_outline, color: Colors.white, size: 18),
+            const Icon(
+              Icons.check_circle_outline,
+              color: Colors.white,
+              size: 18,
+            ),
             const SizedBox(width: 8),
             Text('Copiado: $text'),
           ],
@@ -135,21 +142,33 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             color: colorScheme.primaryContainer,
             borderRadius: BorderRadius.circular(14),
           ),
-          child: Icon(Icons.calculate_rounded, color: colorScheme.onPrimaryContainer, size: 28),
+          child: Icon(
+            Icons.calculate_rounded,
+            color: colorScheme.onPrimaryContainer,
+            size: 28,
+          ),
         ),
         const SizedBox(width: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Calculadora de direcciones IP',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            Text(
-              'Ingresa una dirección IP y un prefijo para analizar la subred completa.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-            ),
-          ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.t('Calculadora de direcciones'),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                context.t(
+                  'Ingresa una dirección IP y un prefijo para analizar la subred completa.',
+                ),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -171,20 +190,32 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Versión del protocolo',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(color: colorScheme.onSurfaceVariant),
+              context.t('Versión del protocolo'),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 10),
             SegmentedButton<bool>(
               segments: const [
-                ButtonSegment(value: false, label: Text('IPv4'), icon: Icon(Icons.looks_4_outlined)),
-                ButtonSegment(value: true, label: Text('IPv6'), icon: Icon(Icons.looks_6_outlined)),
+                ButtonSegment(
+                  value: false,
+                  label: Text('IPv4'),
+                  icon: Icon(Icons.looks_4_outlined),
+                ),
+                ButtonSegment(
+                  value: true,
+                  label: Text('IPv6'),
+                  icon: Icon(Icons.looks_6_outlined),
+                ),
               ],
               selected: {isIpv6},
               onSelectionChanged: (s) {
                 setState(() {
                   isIpv6 = s.first;
-                  addressCtrl.text = isIpv6 ? '2001:db8:1200:12ab::' : '192.168.0.1';
+                  addressCtrl.text = isIpv6
+                      ? '2001:db8:1200:12ab::'
+                      : '192.168.0.1';
                   prefixCtrl.text = isIpv6 ? '64' : '24';
                 });
                 _calculate();
@@ -192,8 +223,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-              'Dirección y prefijo de red',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(color: colorScheme.onSurfaceVariant),
+              context.t('Dirección y prefijo de red'),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 10),
             Row(
@@ -204,11 +237,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   child: TextField(
                     controller: addressCtrl,
                     decoration: InputDecoration(
-                      labelText: 'Dirección IP',
+                      labelText: context.t('Dirección IP'),
                       hintText: isIpv6 ? 'Ej: 2001:db8::1' : 'Ej: 192.168.0.1',
                       helperText: isIpv6
-                          ? 'Grupos hexadecimales separados por dos puntos'
-                          : 'Cuatro números del 0 al 255, separados por puntos',
+                          ? context.t(
+                              'Grupos hexadecimales separados por dos puntos',
+                            )
+                          : context.t(
+                              'Cuatro números del 0 al 255, separados por puntos',
+                            ),
                       border: const OutlineInputBorder(),
                       prefixIcon: const Icon(Icons.router_outlined),
                     ),
@@ -218,10 +255,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 Padding(
                   padding: const EdgeInsets.only(top: 14, left: 10, right: 10),
                   child: Tooltip(
-                    message: 'Separador CIDR: divide la dirección del prefijo de red',
+                    message:
+                        'Separador CIDR: divide la dirección del prefijo de red',
                     child: Text(
                       '/',
-                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: colorScheme.primary),
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
                     ),
                   ),
                 ),
@@ -232,9 +274,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
-                      labelText: 'Prefijo',
+                      labelText: context.t('Prefijo'),
                       hintText: isIpv6 ? '0–128' : '0–32',
-                      helperText: 'Bits de red',
+                      helperText: context.t('Bits de red'),
                       border: const OutlineInputBorder(),
                     ),
                     onSubmitted: (_) => _calculate(),
@@ -246,9 +288,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   child: FilledButton.icon(
                     onPressed: _calculate,
                     icon: const Icon(Icons.play_arrow_rounded),
-                    label: const Text('Calcular'),
+                    label: Text(context.t('Calcular')),
                     style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 18,
+                      ),
                     ),
                   ),
                 ),
@@ -274,15 +319,30 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(Icons.error_outline_rounded, color: colorScheme.onErrorContainer),
+              Icon(
+                Icons.error_outline_rounded,
+                color: colorScheme.onErrorContainer,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Dirección inválida', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onErrorContainer)),
+                    Text(
+                      context.t('Dirección inválida'),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onErrorContainer,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text(msg, style: TextStyle(color: colorScheme.onErrorContainer, fontSize: 13)),
+                    Text(
+                      msg,
+                      style: TextStyle(
+                        color: colorScheme.onErrorContainer,
+                        fontSize: 13,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -317,7 +377,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               children: [
                 Row(
                   children: [
-                    Expanded(child: _sectionTitle(context, Icons.table_rows_rounded, 'Detalles de la subred')),
+                    Expanded(
+                      child: _sectionTitle(
+                        context,
+                        Icons.table_rows_rounded,
+                        'Detalles de la subred',
+                      ),
+                    ),
                     IconButton(
                       icon: Icon(_classIcon(cls), color: clsColor),
                       tooltip: 'Ver tipo de red',
@@ -326,31 +392,77 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                _detailRow(context, 'Red', 'Identificador del bloque de red', '${p.network.dotted}/${p.length}', Colors.indigo.shade600),
+                _detailRow(
+                  context,
+                  'Red',
+                  'Identificador del bloque de red',
+                  '${p.network.dotted}/${p.length}',
+                  Colors.indigo.shade600,
+                ),
                 _divider(),
                 if (p.firstUsable != null)
-                  _detailRow(context, 'Primer host', 'Primera IP asignable a un dispositivo', p.firstUsable!.dotted, Colors.green.shade700),
+                  _detailRow(
+                    context,
+                    'Primer host',
+                    'Primera IP asignable a un dispositivo',
+                    p.firstUsable!.dotted,
+                    Colors.green.shade700,
+                  ),
                 if (p.lastUsable != null) ...[
                   _divider(),
-                  _detailRow(context, 'Último host', 'Última IP asignable a un dispositivo', p.lastUsable!.dotted, Colors.green.shade700),
+                  _detailRow(
+                    context,
+                    'Último host',
+                    'Última IP asignable a un dispositivo',
+                    p.lastUsable!.dotted,
+                    Colors.green.shade700,
+                  ),
                 ],
                 _divider(),
-                _detailRow(context, 'Broadcast', 'Envío simultáneo a todos los dispositivos', p.broadcastAddress.dotted, Colors.orange.shade700),
+                _detailRow(
+                  context,
+                  'Broadcast',
+                  'Envío simultáneo a todos los dispositivos',
+                  p.broadcastAddress.dotted,
+                  Colors.orange.shade700,
+                ),
                 _divider(),
-                _detailRow(context, 'Máscara de subred', 'Distingue la parte de red de la de host', '${p.mask.dotted}  =  /${p.length}', colorScheme.onSurface),
+                _detailRow(
+                  context,
+                  'Máscara de subred',
+                  'Distingue la parte de red de la de host',
+                  '${p.mask.dotted}  =  /${p.length}',
+                  colorScheme.onSurface,
+                ),
                 _divider(),
-                _detailRow(context, 'Wildcard', 'Inverso de la máscara, usado en ACLs y firewalls', p.wildcard.dotted, colorScheme.onSurfaceVariant),
+                _detailRow(
+                  context,
+                  'Wildcard',
+                  'Inverso de la máscara, usado en ACLs y firewalls',
+                  p.wildcard.dotted,
+                  colorScheme.onSurfaceVariant,
+                ),
                 const SizedBox(height: 20),
-                _buildStatsRow(context, p.totalAddresses.toString(), _formatNumber(p.usableHostCount)),
+                _buildStatsRow(
+                  context,
+                  p.totalAddresses.toString(),
+                  _formatNumber(p.usableHostCount),
+                ),
                 if (p.length == 31)
                   Padding(
                     padding: const EdgeInsets.only(top: 12),
-                    child: _infoBanner(context, 'RFC 3021: en prefijos /31, ambas IPs son utilizables como host (enlace punto a punto).'),
+                    child: _infoBanner(
+                      context,
+                      'RFC 3021: en prefijos /31, ambas IPs son utilizables como host (enlace punto a punto).',
+                    ),
                   ),
                 if (p.length == 32)
                   Padding(
                     padding: const EdgeInsets.only(top: 12),
-                    child: _infoBanner(context, 'Host route /32: representa un único dispositivo específico, sin subred.'),
+                    child: _infoBanner(
+                      context,
+                      'Host route /32: representa un único dispositivo específico, sin subred.',
+                    ),
                   ),
               ],
             ),
@@ -364,16 +476,80 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           children: [
             _buildBinaryLegend(context, includeRed: true),
             const SizedBox(height: 12),
-            BitRow(label: 'Dirección', sublabel: p.address.dotted, spans: ipv4BitSpans(p.address.value, p.length, prefixColor: Colors.blue), trailing: p.address.dotted),
-            BitRow(label: 'Máscara', sublabel: '/${p.length}', spans: ipv4BitSpans(p.mask.value, p.length, prefixColor: Colors.red), trailing: '${p.mask.dotted} = /${p.length}'),
-            BitRow(label: 'Wildcard', sublabel: 'Inverso máscara', spans: ipv4BitSpans(p.wildcard.value, 0, prefixColor: Colors.red, hostColor: Colors.black54), trailing: p.wildcard.dotted),
+            BitRow(
+              label: 'Dirección',
+              sublabel: p.address.dotted,
+              spans: ipv4BitSpans(
+                p.address.value,
+                p.length,
+                prefixColor: Colors.blue,
+              ),
+              trailing: p.address.dotted,
+            ),
+            BitRow(
+              label: 'Máscara',
+              sublabel: '/${p.length}',
+              spans: ipv4BitSpans(
+                p.mask.value,
+                p.length,
+                prefixColor: Colors.red,
+              ),
+              trailing: '${p.mask.dotted} = /${p.length}',
+            ),
+            BitRow(
+              label: 'Wildcard',
+              sublabel: 'Inverso máscara',
+              spans: ipv4BitSpans(
+                p.wildcard.value,
+                0,
+                prefixColor: Colors.red,
+                hostColor: Colors.black54,
+              ),
+              trailing: p.wildcard.dotted,
+            ),
             _divider(),
-            BitRow(label: 'Red', sublabel: 'Subred', spans: ipv4BitSpans(p.network.value, p.length, prefixColor: Colors.green), trailing: '${p.network.dotted}/${p.length}'),
+            BitRow(
+              label: 'Red',
+              sublabel: 'Subred',
+              spans: ipv4BitSpans(
+                p.network.value,
+                p.length,
+                prefixColor: Colors.green,
+              ),
+              trailing: '${p.network.dotted}/${p.length}',
+            ),
             if (p.firstUsable != null)
-              BitRow(label: 'Primer host', sublabel: 'HostMin', spans: ipv4BitSpans(p.firstUsable!.value, p.length, prefixColor: Colors.green), trailing: p.firstUsable!.dotted),
+              BitRow(
+                label: 'Primer host',
+                sublabel: 'HostMin',
+                spans: ipv4BitSpans(
+                  p.firstUsable!.value,
+                  p.length,
+                  prefixColor: Colors.green,
+                ),
+                trailing: p.firstUsable!.dotted,
+              ),
             if (p.lastUsable != null)
-              BitRow(label: 'Último host', sublabel: 'HostMax', spans: ipv4BitSpans(p.lastUsable!.value, p.length, prefixColor: Colors.green), trailing: p.lastUsable!.dotted),
-            BitRow(label: 'Broadcast', sublabel: 'Difusión', spans: ipv4BitSpans(p.broadcastAddress.value, p.length, prefixColor: Colors.green), trailing: p.broadcastAddress.dotted),
+              BitRow(
+                label: 'Último host',
+                sublabel: 'HostMax',
+                spans: ipv4BitSpans(
+                  p.lastUsable!.value,
+                  p.length,
+                  prefixColor: Colors.green,
+                ),
+                trailing: p.lastUsable!.dotted,
+              ),
+            BitRow(
+              label: 'Broadcast',
+              sublabel: 'Difusión',
+              spans: ipv4BitSpans(
+                p.broadcastAddress.value,
+                p.length,
+                prefixColor: Colors.green,
+              ),
+              trailing: p.broadcastAddress.dotted,
+            ),
           ],
         ),
         const SizedBox(height: 24),
@@ -403,28 +579,71 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               children: [
                 Row(
                   children: [
-                    Expanded(child: _sectionTitle(context, Icons.table_rows_rounded, 'Formas de la dirección')),
+                    Expanded(
+                      child: _sectionTitle(
+                        context,
+                        Icons.table_rows_rounded,
+                        'Formas de la dirección',
+                      ),
+                    ),
                     IconButton(
-                      icon: Icon(Icons.language_rounded, color: colorScheme.primary),
+                      icon: Icon(
+                        Icons.language_rounded,
+                        color: colorScheme.primary,
+                      ),
                       tooltip: 'Ver tipo de red',
                       onPressed: () => _showIpv6TypeDialog(context, cls),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                _detailRow(context, 'Canónica', 'Forma comprimida según RFC 5952', p.address.canonical, colorScheme.primary),
+                _detailRow(
+                  context,
+                  'Canónica',
+                  'Forma comprimida según RFC 5952',
+                  p.address.canonical,
+                  colorScheme.primary,
+                ),
                 _divider(),
-                _detailRow(context, 'Forma completa', 'Los 128 bits sin comprimir', p.address.fullForm, colorScheme.onSurface),
-                if (cls == Ipv6Class.ipv4Mapped || cls == Ipv6Class.nat64WellKnown) ...[
+                _detailRow(
+                  context,
+                  'Forma completa',
+                  'Los 128 bits sin comprimir',
+                  p.address.fullForm,
+                  colorScheme.onSurface,
+                ),
+                if (cls == Ipv6Class.ipv4Mapped ||
+                    cls == Ipv6Class.nat64WellKnown) ...[
                   _divider(),
-                  _detailRow(context, 'Forma mixta', 'IPv6 con IPv4 embebida', p.address.mixedFormIfApplicable, colorScheme.secondary),
+                  _detailRow(
+                    context,
+                    'Forma mixta',
+                    'IPv6 con IPv4 embebida',
+                    p.address.mixedFormIfApplicable,
+                    colorScheme.secondary,
+                  ),
                 ],
                 _divider(),
-                _detailRow(context, 'Inicio del prefijo', 'Primera dirección del bloque /${p.length}', p.networkStart.canonical, Colors.green.shade700),
+                _detailRow(
+                  context,
+                  'Inicio del prefijo',
+                  'Primera dirección del bloque /${p.length}',
+                  p.networkStart.canonical,
+                  Colors.green.shade700,
+                ),
                 _divider(),
-                _detailRow(context, 'Fin del prefijo', 'Última dirección del bloque /${p.length}', p.networkEnd.canonical, Colors.green.shade700),
+                _detailRow(
+                  context,
+                  'Fin del prefijo',
+                  'Última dirección del bloque /${p.length}',
+                  p.networkEnd.canonical,
+                  Colors.green.shade700,
+                ),
                 const SizedBox(height: 16),
-                _infoBanner(context, 'IPv6 no usa broadcast. La difusión grupal se realiza con multicast (RFC 4291) y Neighbor Discovery (RFC 4861).'),
+                _infoBanner(
+                  context,
+                  'IPv6 no usa broadcast. La difusión grupal se realiza con multicast (RFC 4291) y Neighbor Discovery (RFC 4861).',
+                ),
               ],
             ),
           ),
@@ -436,8 +655,24 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           children: [
             _buildBinaryLegend(context, includeRed: true),
             const SizedBox(height: 12),
-            BitRow(label: 'Dirección', sublabel: p.address.canonical, spans: ipv6BitSpans(p.address.value, p.length, prefixColor: Colors.blue)),
-            BitRow(label: 'Máscara', sublabel: '/${p.length}', spans: ipv6BitSpans(p.mask.value, p.length, prefixColor: Colors.red)),
+            BitRow(
+              label: 'Dirección',
+              sublabel: p.address.canonical,
+              spans: ipv6BitSpans(
+                p.address.value,
+                p.length,
+                prefixColor: Colors.blue,
+              ),
+            ),
+            BitRow(
+              label: 'Máscara',
+              sublabel: '/${p.length}',
+              spans: ipv6BitSpans(
+                p.mask.value,
+                p.length,
+                prefixColor: Colors.red,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 24),
@@ -467,7 +702,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: color.withOpacity(0.15), shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
               child: Icon(icon, color: color, size: 22),
             ),
             const SizedBox(width: 14),
@@ -475,9 +713,22 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: color)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: color,
+                    ),
+                  ),
                   const SizedBox(height: 3),
-                  Text(description, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -507,9 +758,20 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionTitle(context, Icons.dashboard_rounded, title, color: accent),
+            _sectionTitle(
+              context,
+              Icons.dashboard_rounded,
+              title,
+              color: accent,
+            ),
             const SizedBox(height: 4),
-            Text(subtitle, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 12,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: 16),
             Wrap(
               spacing: 10,
@@ -519,7 +781,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   onTap: () => _copyToClipboard(item.value),
                   borderRadius: BorderRadius.circular(10),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: colorScheme.surface,
                       borderRadius: BorderRadius.circular(10),
@@ -528,17 +793,33 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(item.label, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500)),
+                        Text(
+                          item.label,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                         const SizedBox(height: 3),
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               item.value,
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: accent, fontFamily: 'monospace'),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: accent,
+                                fontFamily: 'monospace',
+                              ),
                             ),
                             const SizedBox(width: 6),
-                            Icon(Icons.copy_rounded, size: 12, color: colorScheme.onSurfaceVariant),
+                            Icon(
+                              Icons.copy_rounded,
+                              size: 12,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                           ],
                         ),
                       ],
@@ -553,7 +834,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     );
   }
 
-  Widget _detailRow(BuildContext context, String label, String sublabel, String value, Color valueColor) {
+  Widget _detailRow(
+    BuildContext context,
+    String label,
+    String sublabel,
+    String value,
+    Color valueColor,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -564,20 +851,37 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                Text(sublabel, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant)),
+                Text(
+                  context.t(label),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+                Text(
+                  context.t(sublabel),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),
           Expanded(
             child: SelectableText(
               value,
-              style: TextStyle(fontFamily: 'monospace', color: valueColor, fontWeight: FontWeight.bold, fontSize: 13),
+              style: TextStyle(
+                fontFamily: 'monospace',
+                color: valueColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
             ),
           ),
           IconButton(
             icon: const Icon(Icons.copy_rounded, size: 16),
-            tooltip: 'Copiar valor',
+            tooltip: context.t('Copiar valor'),
             onPressed: () => _copyToClipboard(value),
             visualDensity: VisualDensity.compact,
           ),
@@ -597,27 +901,56 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _statCell(context, Icons.numbers_rounded, 'Direcciones totales', total),
+          _statCell(
+            context,
+            Icons.numbers_rounded,
+            'Direcciones totales',
+            total,
+          ),
           Container(width: 1, height: 56, color: colorScheme.outlineVariant),
-          _statCell(context, Icons.devices_rounded, 'Hosts utilizables', usable),
+          _statCell(
+            context,
+            Icons.devices_rounded,
+            'Hosts utilizables',
+            usable,
+          ),
         ],
       ),
     );
   }
 
-  Widget _statCell(BuildContext context, IconData icon, String label, String value) {
+  Widget _statCell(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
     return Column(
       children: [
         Icon(icon, size: 20, color: colorScheme.primary),
         const SizedBox(height: 4),
-        Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: colorScheme.primary, fontFamily: 'monospace')),
-        Text(label, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant)),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: colorScheme.primary,
+            fontFamily: 'monospace',
+          ),
+        ),
+        Text(
+          context.t(label),
+          style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+        ),
       ],
     );
   }
 
-  Widget _buildBinaryCard(BuildContext context, {required List<Widget> children}) {
+  Widget _buildBinaryCard(
+    BuildContext context, {
+    required List<Widget> children,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     return Card(
       elevation: 0,
@@ -628,10 +961,18 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          leading: Icon(Icons.developer_mode_rounded, color: colorScheme.secondary),
-          title: const Text('Representación binaria', style: TextStyle(fontWeight: FontWeight.w600)),
+          leading: Icon(
+            Icons.developer_mode_rounded,
+            color: colorScheme.secondary,
+          ),
+          title: Text(
+            context.t('Representación binaria'),
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
           subtitle: Text(
-            'Ver cada bit de la dirección — para estudiantes y profesionales',
+            context.t(
+              'Ver cada bit de la dirección — para estudiantes y profesionales',
+            ),
             style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
           ),
           tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
@@ -647,21 +988,25 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       spacing: 16,
       runSpacing: 6,
       children: [
-        _legendDot(Colors.blue, 'Bits de red (prefijo)'),
-        _legendDot(Colors.grey, 'Bits de host'),
-        if (includeRed) _legendDot(Colors.red, 'Bits de máscara'),
-        _legendDot(Colors.green, 'Rango de subred'),
+        _legendDot(context, Colors.blue, 'Bits de red (prefijo)'),
+        _legendDot(context, Colors.grey, 'Bits de host'),
+        if (includeRed) _legendDot(context, Colors.red, 'Bits de máscara'),
+        _legendDot(context, Colors.green, 'Rango de subred'),
       ],
     );
   }
 
-  Widget _legendDot(Color color, String label) {
+  Widget _legendDot(BuildContext context, Color color, String label) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
         const SizedBox(width: 5),
-        Text(label, style: const TextStyle(fontSize: 11)),
+        Text(context.t(label), style: const TextStyle(fontSize: 11)),
       ],
     );
   }
@@ -677,21 +1022,41 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline_rounded, size: 16, color: colorScheme.secondary),
+          Icon(
+            Icons.info_outline_rounded,
+            size: 16,
+            color: colorScheme.secondary,
+          ),
           const SizedBox(width: 8),
-          Expanded(child: Text(message, style: TextStyle(fontSize: 12, color: colorScheme.onSecondaryContainer))),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                fontSize: 12,
+                color: colorScheme.onSecondaryContainer,
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _sectionTitle(BuildContext context, IconData icon, String label, {Color? color}) {
+  Widget _sectionTitle(
+    BuildContext context,
+    IconData icon,
+    String label, {
+    Color? color,
+  }) {
     final c = color ?? Theme.of(context).colorScheme.primary;
     return Row(
       children: [
         Icon(icon, size: 18, color: c),
         const SizedBox(width: 8),
-        Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: c)),
+        Text(
+          context.t(label),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: c),
+        ),
       ],
     );
   }
@@ -708,21 +1073,30 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     final label = isPublic
         ? 'Red Pública'
         : isPrivate
-            ? 'Red Privada'
-            : cls.label.split('(').first.trim();
+        ? 'Red Privada'
+        : cls.label.split('(').first.trim();
     final desc = isPublic
         ? 'Esta dirección es accesible desde Internet.'
         : isPrivate
-            ? 'Esta dirección pertenece a una red local. No es accesible desde Internet.'
-            : _classDescription(cls);
+        ? 'Esta dirección pertenece a una red local. No es accesible desde Internet.'
+        : _classDescription(cls);
 
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         icon: Icon(icon, color: color, size: 36),
-        title: Text(label, textAlign: TextAlign.center, style: TextStyle(color: color, fontWeight: FontWeight.bold)),
-        content: Text(desc, textAlign: TextAlign.center),
-        actions: [TextButton(onPressed: () => Navigator.pop(_), child: const Text('Entendido'))],
+        title: Text(
+          context.t(label),
+          textAlign: TextAlign.center,
+          style: TextStyle(color: color, fontWeight: FontWeight.bold),
+        ),
+        content: Text(context.t(desc), textAlign: TextAlign.center),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(context.t('Entendido')),
+          ),
+        ],
       ),
     );
   }
@@ -732,20 +1106,33 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     final isPrivate = cls == Ipv6Class.uniqueLocal;
     final icon = isPublic ? Icons.public_rounded : Icons.home_rounded;
     final color = isPublic ? Colors.green.shade700 : Colors.blue.shade700;
-    final label = isPublic ? 'Red Pública' : isPrivate ? 'Red Privada' : cls.label.split('(').first.trim();
+    final label = isPublic
+        ? 'Red Pública'
+        : isPrivate
+        ? 'Red Privada'
+        : cls.label.split('(').first.trim();
     final desc = isPublic
         ? 'Esta dirección IPv6 es accesible desde Internet.'
         : isPrivate
-            ? 'Esta dirección IPv6 pertenece a una red local (ULA). No es accesible desde Internet.'
-            : cls.label;
+        ? 'Esta dirección IPv6 pertenece a una red local (ULA). No es accesible desde Internet.'
+        : cls.label;
 
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         icon: Icon(icon, color: color, size: 36),
-        title: Text(label, textAlign: TextAlign.center, style: TextStyle(color: color, fontWeight: FontWeight.bold)),
-        content: Text(desc, textAlign: TextAlign.center),
-        actions: [TextButton(onPressed: () => Navigator.pop(_), child: const Text('Entendido'))],
+        title: Text(
+          context.t(label),
+          textAlign: TextAlign.center,
+          style: TextStyle(color: color, fontWeight: FontWeight.bold),
+        ),
+        content: Text(context.t(desc), textAlign: TextAlign.center),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(context.t('Entendido')),
+          ),
+        ],
       ),
     );
   }

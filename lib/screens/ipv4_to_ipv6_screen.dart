@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../app_localization.dart';
 import '../core/ipv4.dart';
 import '../core/ipv6.dart';
 import '../core/transition.dart';
@@ -147,23 +148,25 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Transición IPv4 ↔ IPv6',
+            context.t('Transición IPv4 ↔ IPv6'),
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 4),
-          const Text(
-            'IPv4-mapped (RFC 4291), incrustación RFC 6052 (NAT64/SIIT) y 6to4 (RFC 3056).',
+          Text(
+            context.t(
+              'IPv4-mapped (RFC 4291), incrustación RFC 6052 (NAT64/SIIT) y 6to4 (RFC 3056).',
+            ),
           ),
           const SizedBox(height: 16),
           SegmentedButton<_Direction>(
-            segments: const [
+            segments: [
               ButtonSegment(
                 value: _Direction.v4ToV6,
-                label: Text('IPv4 → IPv6'),
+                label: Text(context.t('IPv4 → IPv6')),
               ),
               ButtonSegment(
                 value: _Direction.v6ToV4,
-                label: Text('IPv6 → IPv4'),
+                label: Text(context.t('IPv6 → IPv4')),
               ),
             ],
             selected: {direction},
@@ -183,7 +186,7 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
           else
             ..._buildV6ToV4Inputs(),
           const SizedBox(height: 16),
-          FilledButton(onPressed: _run, child: const Text('Transformar')),
+          FilledButton(onPressed: _run, child: Text(context.t('Transformar'))),
           const SizedBox(height: 20),
           if (error != null)
             Card(
@@ -193,9 +196,9 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Revisa los datos de transición',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    Text(
+                      context.t('Revisa los datos de transición'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
                     Text(error!),
@@ -227,9 +230,9 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
                     ],
                     if (warnings.isNotEmpty) const Divider(),
                     if (warnings.isNotEmpty)
-                      const Text(
-                        'Advertencias',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      Text(
+                        context.t('Advertencias'),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     for (final n in warnings)
                       Padding(
@@ -251,52 +254,16 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
         width: 360,
         child: TextField(
           controller: ipv4Ctrl,
-          decoration: const InputDecoration(
-            labelText: 'Dirección IPv4',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: context.t('Dirección IPv4'),
+            border: const OutlineInputBorder(),
           ),
           onChanged: (_) => _clearResult(),
           onSubmitted: (_) => _run(),
         ),
       ),
       const SizedBox(height: 12),
-      SegmentedButton<_Method>(
-        segments: const [
-          ButtonSegment(value: _Method.mapped, label: Text('IPv4-mapped')),
-          ButtonSegment(value: _Method.rfc6052, label: Text('RFC 6052')),
-          ButtonSegment(value: _Method.sixToFour, label: Text('6to4')),
-        ],
-        selected: {method},
-        onSelectionChanged: (s) => setState(() => method = s.first),
-      ),
-      if (method == _Method.rfc6052) ...[
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            SizedBox(
-              width: 260,
-              child: TextField(
-                controller: prefixAddrCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Prefijo IPv6 (WKP 64:ff9b:: o tu NSP)',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ),
-            SizedBox(
-              width: 160,
-              child: DropdownButtonFormField<int>(
-                value: int.tryParse(prefixLenCtrl.text) ?? 96,
-                decoration: const InputDecoration(labelText: 'PL', border: OutlineInputBorder()),
-                items: rfc6052AllowedPrefixLengths
-                    .map((p) => DropdownMenuItem(value: p, child: Text('/$p')))
-                    .toList(),
-                onChanged: (v) => setState(() => prefixLenCtrl.text = '$v'),
-              ),
-
-      const Text('Se mostrarán IPv4-mapped, RFC 6052/NAT64 WKP y 6to4.'),
+      Text(context.t('Se mostrarán IPv4-mapped, RFC 6052/NAT64 WKP y 6to4.')),
     ];
   }
 
@@ -329,28 +296,22 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
   List<Widget> _buildV6ToV4Inputs() {
     return [
       SizedBox(
-        width: 200,
-        child: DropdownButtonFormField<int>(
-          value: int.tryParse(prefixLenCtrl.text) ?? 96,
-          decoration: const InputDecoration(labelText: 'PL si es prefijo de red específico (RFC 6052)', border: OutlineInputBorder()),
-          items: rfc6052AllowedPrefixLengths
-              .map((p) => DropdownMenuItem(value: p, child: Text('/$p')))
-              .toList(),
-          onChanged: (v) => setState(() => prefixLenCtrl.text = '$v'),
         width: 520,
         child: TextField(
           controller: ipv6Ctrl,
-          decoration: const InputDecoration(
-            labelText: 'Dirección IPv6',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: context.t('Dirección IPv6'),
+            border: const OutlineInputBorder(),
           ),
           onChanged: (_) => _clearResult(),
           onSubmitted: (_) => _run(),
         ),
       ),
       const SizedBox(height: 12),
-      const Text(
-        'Detecta automáticamente IPv4-mapped, NAT64 WKP/local y 6to4.',
+      Text(
+        context.t(
+          'Detecta automáticamente IPv4-mapped, NAT64 WKP/local y 6to4.',
+        ),
       ),
     ];
   }

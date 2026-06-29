@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../app_localization.dart';
 import '../core/ipv4.dart';
 import '../core/ipv6.dart';
 import '../core/subnetting.dart';
@@ -147,12 +148,14 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Subnetting',
+                context.t('Subnetting'),
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 2),
               Text(
-                'Calcula red, broadcast, hosts y transicion /p -> /q.',
+                context.t(
+                  'Calcula red, broadcast, hosts y transicion /p -> /q.',
+                ),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -178,15 +181,15 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildProtocolSelector(),
+          _buildProtocolSelector(context),
           const SizedBox(height: 14),
-          _buildClassicInputs(),
+          _buildClassicInputs(context),
         ],
       ),
     );
   }
 
-  Widget _buildProtocolSelector() {
+  Widget _buildProtocolSelector(BuildContext context) {
     return SegmentedButton<bool>(
       segments: const [
         ButtonSegment(
@@ -219,7 +222,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
     );
   }
 
-  Widget _buildClassicInputs() {
+  Widget _buildClassicInputs(BuildContext context) {
     return Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,
       spacing: 8,
@@ -229,9 +232,9 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
           width: 300,
           child: TextField(
             controller: addressCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Address (host o red)',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: context.t('Address (host o red)'),
+              border: const OutlineInputBorder(),
             ),
           ),
         ),
@@ -241,33 +244,33 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
           child: TextField(
             controller: originalPrefixCtrl,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Netmask (ej. 24)',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: context.t('Netmask (ej. 24)'),
+              border: const OutlineInputBorder(),
             ),
           ),
         ),
-        const Text('move to:'),
+        Text(context.t('move to:')),
         SizedBox(
           width: 150,
           child: TextField(
             controller: newPrefixCtrl,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Nueva mascara',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: context.t('Nueva mascara'),
+              border: const OutlineInputBorder(),
             ),
           ),
         ),
         FilledButton.icon(
           onPressed: _calculate,
           icon: const Icon(Icons.calculate_outlined),
-          label: const Text('Calcular'),
+          label: Text(context.t('Calcular')),
         ),
         OutlinedButton.icon(
           onPressed: _showSubnettingHelp,
           icon: const Icon(Icons.info_outline),
-          label: const Text('Ayuda'),
+          label: Text(context.t('Ayuda')),
         ),
       ],
     );
@@ -346,7 +349,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$label copiado'),
+        content: Text('${context.t(label)} ${context.t('copiado')}'),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
       ),
@@ -357,7 +360,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
     return OutlinedButton.icon(
       onPressed: () => _copyToClipboard(label, value),
       icon: Icon(icon, size: 16),
-      label: Text(label),
+      label: Text(context.t(label)),
       style: OutlinedButton.styleFrom(
         visualDensity: VisualDensity.compact,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -414,11 +417,11 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.info_outline),
-            SizedBox(width: 10),
-            Text('Ayuda de subnetting'),
+            const Icon(Icons.info_outline),
+            const SizedBox(width: 10),
+            Text(context.t('Ayuda de subnetting')),
           ],
         ),
         content: ConstrainedBox(
@@ -428,19 +431,26 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                _helpStep('1', 'Elige IPv4 o IPv6.'),
+                _helpStep('1', context.t('Elige IPv4 o IPv6.')),
                 _helpStep(
                   '2',
-                  'Address acepta una IP de host o una direccion de red.',
+                  context.t(
+                    'Address acepta una IP de host o una direccion de red.',
+                  ),
                 ),
                 _helpStep(
                   '3',
-                  'Netmask es el prefijo actual, por ejemplo /24.',
+                  context.t('Netmask es el prefijo actual, por ejemplo /24.'),
                 ),
-                _helpStep('4', 'Deja move to vacio para ver solo la red base.'),
+                _helpStep(
+                  '4',
+                  context.t('Deja move to vacio para ver solo la red base.'),
+                ),
                 _helpStep(
                   '5',
-                  'move to mayor divide en subredes; menor crea una superred.',
+                  context.t(
+                    'move to mayor divide en subredes; menor crea una superred.',
+                  ),
                 ),
               ],
             ),
@@ -449,7 +459,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
         actions: [
           FilledButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Entendido'),
+            child: Text(context.t('Entendido')),
           ),
         ],
       ),
@@ -789,7 +799,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
           SizedBox(
             width: 110,
             child: Text(
-              label,
+              context.t(label),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
@@ -813,7 +823,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
             IconButton(
               onPressed: () => _copyToClipboard(label, copyValue),
               icon: const Icon(Icons.copy, size: 16),
-              tooltip: 'Copiar $label',
+              tooltip: '${context.t('Copiar')} ${context.t(label)}',
               visualDensity: VisualDensity.compact,
               constraints: const BoxConstraints.tightFor(width: 32, height: 28),
               padding: EdgeInsets.zero,
@@ -983,7 +993,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
               TextSpan(
                 children: [
                   TextSpan(
-                    text: '$label: ',
+                    text: '${context.t(label)}: ',
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   TextSpan(text: value),
@@ -996,7 +1006,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
           IconButton(
             onPressed: () => _copyToClipboard(label, value),
             icon: const Icon(Icons.copy, size: 16),
-            tooltip: 'Copiar $label',
+            tooltip: '${context.t('Copiar')} ${context.t(label)}',
             visualDensity: VisualDensity.compact,
             constraints: const BoxConstraints.tightFor(width: 32, height: 28),
             padding: EdgeInsets.zero,
