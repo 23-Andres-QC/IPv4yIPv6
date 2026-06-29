@@ -260,6 +260,41 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
         ),
       ),
       const SizedBox(height: 12),
+      SegmentedButton<_Method>(
+        segments: const [
+          ButtonSegment(value: _Method.mapped, label: Text('IPv4-mapped')),
+          ButtonSegment(value: _Method.rfc6052, label: Text('RFC 6052')),
+          ButtonSegment(value: _Method.sixToFour, label: Text('6to4')),
+        ],
+        selected: {method},
+        onSelectionChanged: (s) => setState(() => method = s.first),
+      ),
+      if (method == _Method.rfc6052) ...[
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            SizedBox(
+              width: 260,
+              child: TextField(
+                controller: prefixAddrCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Prefijo IPv6 (WKP 64:ff9b:: o tu NSP)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 160,
+              child: DropdownButtonFormField<int>(
+                value: int.tryParse(prefixLenCtrl.text) ?? 96,
+                decoration: const InputDecoration(labelText: 'PL', border: OutlineInputBorder()),
+                items: rfc6052AllowedPrefixLengths
+                    .map((p) => DropdownMenuItem(value: p, child: Text('/$p')))
+                    .toList(),
+                onChanged: (v) => setState(() => prefixLenCtrl.text = '$v'),
+              ),
       const Text('Se mostrarán IPv4-mapped, RFC 6052/NAT64 WKP y 6to4.'),
     ];
   }
@@ -293,6 +328,14 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
   List<Widget> _buildV6ToV4Inputs() {
     return [
       SizedBox(
+        width: 200,
+        child: DropdownButtonFormField<int>(
+          value: int.tryParse(prefixLenCtrl.text) ?? 96,
+          decoration: const InputDecoration(labelText: 'PL si es prefijo de red específico (RFC 6052)', border: OutlineInputBorder()),
+          items: rfc6052AllowedPrefixLengths
+              .map((p) => DropdownMenuItem(value: p, child: Text('/$p')))
+              .toList(),
+          onChanged: (v) => setState(() => prefixLenCtrl.text = '$v'),
         width: 520,
         child: TextField(
           controller: ipv6Ctrl,
