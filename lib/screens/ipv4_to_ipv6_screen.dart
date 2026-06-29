@@ -5,7 +5,12 @@ import '../core/transition.dart';
 
 enum _Direction { v4ToV6, v6ToV4 }
 
-enum _Method { mapped, rfc6052, sixToFour }
+class _TransitionOutput {
+  final String title;
+  final String value;
+  final List<String> warnings;
+  const _TransitionOutput(this.title, this.value, {this.warnings = const []});
+}
 
 class Ipv4ToIpv6Screen extends StatefulWidget {
   const Ipv4ToIpv6Screen({super.key});
@@ -15,67 +20,111 @@ class Ipv4ToIpv6Screen extends StatefulWidget {
 
 class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
   _Direction direction = _Direction.v4ToV6;
-  _Method method = _Method.rfc6052;
 
-  final ipv4Ctrl = TextEditingController(text: '192.0.2.33');
-  final ipv6Ctrl = TextEditingController(text: '64:ff9b::192.0.2.33');
-  final prefixAddrCtrl = TextEditingController(text: '64:ff9b::');
-  final prefixLenCtrl = TextEditingController(text: '96');
+  final ipv4Ctrl = TextEditingController(text: '8.8.8.8');
+  final ipv6Ctrl = TextEditingController(text: '64:ff9b::8.8.8.8');
 
   String? error;
-  List<String> resultLines = [];
-  List<String> notes = [];
+  String? methodText;
+  List<_TransitionOutput> outputs = [];
+  List<String> warnings = [];
+
+  @override
+  void dispose() {
+    ipv4Ctrl.dispose();
+    ipv6Ctrl.dispose();
+    super.dispose();
+  }
+
+  void _clearResult() {
+    if (error == null &&
+        methodText == null &&
+        outputs.isEmpty &&
+        warnings.isEmpty) {
+      return;
+    }
+    setState(() {
+      error = null;
+      methodText = null;
+      outputs = [];
+      warnings = [];
+    });
+  }
+
+  List<String> _visibleWarnings(List<String> notes) {
+    return notes
+        .where(
+          (note) => note.startsWith('Advertencia') || note.startsWith('Aviso'),
+        )
+        .toList();
+  }
+
+  String _primaryAddress(String text) {
+    return text.split('  (mixta:').first.trim();
+  }
 
   void _run() {
     setState(() {
       error = null;
-      resultLines = [];
-      notes = [];
+      methodText = null;
+      outputs = [];
+      warnings = [];
       try {
         if (direction == _Direction.v4ToV6) {
           final ipv4 = Ipv4Address.parse(ipv4Ctrl.text);
-          switch (method) {
-            case _Method.mapped:
-              final r = TransitionEngine.ipv4ToMapped(ipv4);
-              resultLines = [r.resultText];
-              notes = [r.method, ...r.notes];
-              break;
-            case _Method.rfc6052:
-              final prefixAddr = Ipv6Address.parse(prefixAddrCtrl.text);
-              final pl = int.parse(prefixLenCtrl.text.trim());
-              final r = TransitionEngine.embedRfc6052(ipv4, prefixAddr, pl);
-              resultLines = [r.resultText];
-              notes = [r.method, ...r.notes];
-              break;
-            case _Method.sixToFour:
-              final r = TransitionEngine.ipv4ToSixToFour(ipv4);
-              resultLines = [r.resultText];
-              notes = [r.method, ...r.notes];
-              break;
-          }
+          final mapped = TransitionEngine.ipv4ToMapped(ipv4);
+          final rfc6052 = TransitionEngine.embedRfc6052(
+            ipv4,
+            Ipv6Address.parse('64:ff9b::'),
+            96,
+          );
+          final sixToFour = TransitionEngine.ipv4ToSixToFour(ipv4);
+          outputs = [
+            _TransitionOutput(
+              'IPv4-mapped',
+              mapped.resultText,
+              warnings: _visibleWarnings(mapped.notes),
+            ),
+            _TransitionOutput(
+              'NAT64 (RFC 6052)',
+              _primaryAddress(rfc6052.resultText),
+              warnings: _visibleWarnings(rfc6052.notes),
+            ),
+            _TransitionOutput(
+              '6to4',
+              sixToFour.resultText,
+              warnings: _visibleWarnings(sixToFour.notes),
+            ),
+          ];
         } else {
           final v6 = Ipv6Address.parse(ipv6Ctrl.text);
           final cls = v6.classification;
-          resultLines.add('Clasificación detectada: ${cls.label}');
           if (cls == Ipv6Class.ipv4Mapped) {
             final v4 = TransitionEngine.mappedToIpv4(v6)!;
-            resultLines.add('IPv4 extraída (mapped): ${v4.dotted}');
+            methodText = 'IPv4-mapped detectado';
+            outputs = [_TransitionOutput('IPv4', v4.dotted)];
           } else if (cls == Ipv6Class.nat64WellKnown) {
             final v4 = TransitionEngine.extractRfc6052(v6, 96);
-            resultLines.add('IPv4 extraída (RFC 6052, WKP /96): ${v4.dotted}');
+            methodText = 'RFC 6052 / NAT64 WKP /96 detectado';
+            outputs = [_TransitionOutput('IPv4', v4.dotted)];
+          } else if (cls == Ipv6Class.nat64Local) {
+            final v4 = TransitionEngine.extractRfc6052(v6, 48);
+            methodText = 'RFC 6052 / prefijo local 64:ff9b:1::/48 detectado';
+            outputs = [_TransitionOutput('IPv4', v4.dotted)];
           } else if (cls == Ipv6Class.sixToFour) {
             final v4 = TransitionEngine.sixToFourToIpv4(v6);
-            resultLines.add('IPv4 del sitio 6to4: ${v4?.dotted}');
-          } else {
-            final pl = int.tryParse(prefixLenCtrl.text.trim());
-            if (pl != null && rfc6052AllowedPrefixLengths.contains(pl)) {
-              try {
-                final v4 = TransitionEngine.extractRfc6052(v6, pl);
-                resultLines.add('IPv4 extraída con prefijo /$pl (RFC 6052, prefijo de red específico): ${v4.dotted}');
-              } catch (_) {}
+            if (v4 == null) {
+              warnings.add(
+                'Advertencia: la dirección parece 6to4, pero no se pudo extraer una IPv4.',
+              );
+            } else {
+              methodText = '6to4 detectado';
+              outputs = [_TransitionOutput('IPv4', v4.dotted)];
             }
-            notes.add('Esta dirección no usa un mecanismo de incrustación estándar reconocido automáticamente; '
-                'si corresponde a un prefijo de red específico RFC 6052, indica su longitud arriba.');
+          } else {
+            throw TransitionException(
+              'No se detectó un formato convertible automáticamente. Usa IPv4-mapped, NAT64 64:ff9b::/96, NAT64 local 64:ff9b:1::/48 o 6to4.',
+            );
           }
         }
       } catch (e) {
@@ -97,39 +146,96 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Transición IPv4 ↔ IPv6', style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            'Transición IPv4 ↔ IPv6',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
           const SizedBox(height: 4),
-          const Text('IPv4-mapped (RFC 4291), incrustación RFC 6052 (NAT64/SIIT) y 6to4 (RFC 3056).'),
+          const Text(
+            'IPv4-mapped (RFC 4291), incrustación RFC 6052 (NAT64/SIIT) y 6to4 (RFC 3056).',
+          ),
           const SizedBox(height: 16),
           SegmentedButton<_Direction>(
             segments: const [
-              ButtonSegment(value: _Direction.v4ToV6, label: Text('IPv4 → IPv6')),
-              ButtonSegment(value: _Direction.v6ToV4, label: Text('IPv6 → IPv4')),
+              ButtonSegment(
+                value: _Direction.v4ToV6,
+                label: Text('IPv4 → IPv6'),
+              ),
+              ButtonSegment(
+                value: _Direction.v6ToV4,
+                label: Text('IPv6 → IPv4'),
+              ),
             ],
             selected: {direction},
-            onSelectionChanged: (s) => setState(() => direction = s.first),
+            onSelectionChanged: (s) {
+              setState(() {
+                direction = s.first;
+                error = null;
+                methodText = null;
+                outputs = [];
+                warnings = [];
+              });
+            },
           ),
           const SizedBox(height: 16),
-          if (direction == _Direction.v4ToV6) ..._buildV4ToV6Inputs() else ..._buildV6ToV4Inputs(),
+          if (direction == _Direction.v4ToV6)
+            ..._buildV4ToV6Inputs()
+          else
+            ..._buildV6ToV4Inputs(),
           const SizedBox(height: 16),
           FilledButton(onPressed: _run, child: const Text('Transformar')),
           const SizedBox(height: 20),
           if (error != null)
             Card(
               color: Theme.of(context).colorScheme.errorContainer,
-              child: Padding(padding: const EdgeInsets.all(12), child: Text(error!)),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Revisa los datos de transición',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(error!),
+                  ],
+                ),
+              ),
             ),
-          if (resultLines.isNotEmpty)
+          if (outputs.isNotEmpty)
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (final l in resultLines)
-                      SelectableText(l, style: const TextStyle(fontFamily: 'monospace', fontSize: 16, fontWeight: FontWeight.bold)),
-                    if (notes.isNotEmpty) const Divider(),
-                    for (final n in notes) Padding(padding: const EdgeInsets.only(top: 4), child: Text(n)),
+                    if (methodText != null)
+                      Text(
+                        'Método: $methodText',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    if (methodText != null) const SizedBox(height: 8),
+                    for (final output in outputs) ...[
+                      _buildOutputRow(output),
+                      for (final warning in output.warnings)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4, left: 170),
+                          child: Text(warning),
+                        ),
+                      if (output != outputs.last) const Divider(),
+                    ],
+                    if (warnings.isNotEmpty) const Divider(),
+                    if (warnings.isNotEmpty)
+                      const Text(
+                        'Advertencias',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    for (final n in warnings)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(n),
+                      ),
                   ],
                 ),
               ),
@@ -141,9 +247,17 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
 
   List<Widget> _buildV4ToV6Inputs() {
     return [
-      TextField(
-        controller: ipv4Ctrl,
-        decoration: const InputDecoration(labelText: 'Dirección IPv4', border: OutlineInputBorder()),
+      SizedBox(
+        width: 360,
+        child: TextField(
+          controller: ipv4Ctrl,
+          decoration: const InputDecoration(
+            labelText: 'Dirección IPv4',
+            border: OutlineInputBorder(),
+          ),
+          onChanged: (_) => _clearResult(),
+          onSubmitted: (_) => _run(),
+        ),
       ),
       const SizedBox(height: 12),
       SegmentedButton<_Method>(
@@ -181,20 +295,38 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
                     .toList(),
                 onChanged: (v) => setState(() => prefixLenCtrl.text = '$v'),
               ),
+      const Text('Se mostrarán IPv4-mapped, RFC 6052/NAT64 WKP y 6to4.'),
+    ];
+  }
+
+  Widget _buildOutputRow(_TransitionOutput output) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 160,
+          child: Text(
+            '${output.title}:',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: SelectableText(
+            output.value,
+            style: const TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
-          ],
+          ),
         ),
       ],
-    ];
+    );
   }
 
   List<Widget> _buildV6ToV4Inputs() {
     return [
-      TextField(
-        controller: ipv6Ctrl,
-        decoration: const InputDecoration(labelText: 'Dirección IPv6', border: OutlineInputBorder()),
-      ),
-      const SizedBox(height: 12),
       SizedBox(
         width: 200,
         child: DropdownButtonFormField<int>(
@@ -204,7 +336,20 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
               .map((p) => DropdownMenuItem(value: p, child: Text('/$p')))
               .toList(),
           onChanged: (v) => setState(() => prefixLenCtrl.text = '$v'),
+        width: 520,
+        child: TextField(
+          controller: ipv6Ctrl,
+          decoration: const InputDecoration(
+            labelText: 'Dirección IPv6',
+            border: OutlineInputBorder(),
+          ),
+          onChanged: (_) => _clearResult(),
+          onSubmitted: (_) => _run(),
         ),
+      ),
+      const SizedBox(height: 12),
+      const Text(
+        'Detecta automáticamente IPv4-mapped, NAT64 WKP/local y 6to4.',
       ),
     ];
   }
