@@ -558,10 +558,10 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
             // Cabecera de resultado
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.assessment_outlined,
                   size: 18,
-                  color: Colors.black54,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -681,7 +681,10 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
   // ── Result card ─────────────────────────────────────────────────────────
 
   Widget _buildResult(ConnectivityResult r, ThemeData theme) {
-    final (icon, accentColor, bgColor, summary) = _kindMeta(r.kind);
+    final (icon, accentColor, bgColor, summary) = _kindMeta(
+      r.kind,
+      theme.colorScheme,
+    );
     return Card(
       color: bgColor,
       shape: RoundedRectangleBorder(
@@ -717,7 +720,7 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.6),
+                color: theme.colorScheme.surface.withOpacity(0.72),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -768,9 +771,9 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
                       Expanded(
                         child: Text(
                           d,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: Colors.black87,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
                       ),
@@ -784,27 +787,33 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
     );
   }
 
-  (IconData, Color, Color, String) _kindMeta(ConnectivityKind k) {
+  (IconData, Color, Color, String) _kindMeta(
+    ConnectivityKind k,
+    ColorScheme colorScheme,
+  ) {
+    final isDark = colorScheme.brightness == Brightness.dark;
+    Color tint(Color light, Color dark) => isDark ? dark : light;
+
     switch (k) {
       case ConnectivityKind.sameLinkDirect:
         return (
           Icons.cable_rounded,
-          Colors.green.shade700,
-          Colors.green.shade50,
+          tint(Colors.green.shade700, Colors.green.shade300),
+          tint(Colors.green.shade50, Colors.green.shade900.withOpacity(0.22)),
           'Los dos dispositivos están en la misma red. Se comunican directamente sin necesitar ningún router ni intermediario.',
         );
       case ConnectivityKind.routedSameFamily:
         return (
           Icons.router_rounded,
-          Colors.blue.shade700,
-          Colors.blue.shade50,
+          tint(Colors.blue.shade700, Colors.blue.shade300),
+          tint(Colors.blue.shade50, Colors.blue.shade900.withOpacity(0.22)),
           'Los dispositivos están en redes diferentes pero usan el mismo tipo de IP. Necesitan un router que lleve los datos de una red a la otra.',
         );
       case ConnectivityKind.dualStackCommonFamily:
         return (
           Icons.swap_horiz_rounded,
-          Colors.green.shade700,
-          Colors.green.shade50,
+          tint(Colors.green.shade700, Colors.green.shade300),
+          tint(Colors.green.shade50, Colors.green.shade900.withOpacity(0.22)),
           'Uno usa IPv4 y el otro IPv6, pero ambos soportan los dos tipos a la vez. Pueden comunicarse usando la versión que tengan en común.',
         );
       case ConnectivityKind.translatedNat64:
@@ -812,15 +821,15 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
       case ConnectivityKind.translated6to4:
         return (
           Icons.translate_rounded,
-          Colors.orange.shade700,
-          Colors.amber.shade50,
+          tint(Colors.orange.shade700, Colors.orange.shade300),
+          tint(Colors.amber.shade50, Colors.orange.shade900.withOpacity(0.22)),
           'Uno usa IPv4 y el otro IPv6. Pueden comunicarse, pero necesitan un dispositivo que traduzca entre los dos tipos de IP.',
         );
       case ConnectivityKind.noPath:
         return (
           Icons.block_rounded,
-          Colors.red.shade700,
-          Colors.red.shade50,
+          tint(Colors.red.shade700, Colors.red.shade300),
+          tint(Colors.red.shade50, Colors.red.shade900.withOpacity(0.22)),
           'No hay forma de que se comuniquen. Uno usa IPv4 y el otro IPv6, y no hay ningún traductor ni dispositivo que soporte los dos tipos al mismo tiempo.',
         );
     }
@@ -829,7 +838,7 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
   // ── Endpoint card ────────────────────────────────────────────────────────
 
   Color _colorForKind(ConnectivityKind kind, BuildContext context) {
-    return _kindMeta(kind).$3;
+    return _kindMeta(kind, Theme.of(context).colorScheme).$3;
   }
 
   Widget _endpointCard(
@@ -1320,24 +1329,25 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
   }
 
   Widget _infoRow(IconData icon, String label, String value) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 3),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 13, color: Colors.blueGrey.shade400),
+          Icon(icon, size: 13, color: colorScheme.onSurfaceVariant),
           const SizedBox(width: 5),
           Text(
             '$label ',
-            style: TextStyle(fontSize: 11, color: Colors.blueGrey.shade500),
+            style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: colorScheme.onSurface,
               ),
             ),
           ),
