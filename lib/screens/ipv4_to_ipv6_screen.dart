@@ -295,6 +295,7 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
                     .toList(),
                 onChanged: (v) => setState(() => prefixLenCtrl.text = '$v'),
               ),
+
       const Text('Se mostrarán IPv4-mapped, RFC 6052/NAT64 WKP y 6to4.'),
     ];
   }
