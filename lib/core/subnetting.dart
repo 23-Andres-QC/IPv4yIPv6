@@ -27,7 +27,8 @@ class Ipv4SubnetPlan {
     this.requestedHosts,
   });
 
-  bool get wasRounded => requestedCount != null && requestedCount != deliveredCount;
+  bool get wasRounded =>
+      requestedCount != null && requestedCount != deliveredCount;
 }
 
 class Ipv4SubnettingException implements Exception {
@@ -45,7 +46,9 @@ class Ipv4Subnetting {
     int maxResults = 4096,
   }) {
     if (newLength < 0 || newLength > 32) {
-      throw Ipv4SubnettingException('La nueva longitud debe estar entre 0 y 32.');
+      throw Ipv4SubnettingException(
+        'La nueva longitud debe estar entre 0 y 32.',
+      );
     }
     final original = Ipv4Prefix(address, originalLength);
     if (newLength == originalLength) {
@@ -55,8 +58,9 @@ class Ipv4Subnetting {
       final count = 1 << (newLength - originalLength);
       if (count > maxResults) {
         throw Ipv4SubnettingException(
-            'La división de /$originalLength a /$newLength generaría $count subredes; '
-            'supera el límite de visualización ($maxResults).');
+          'La división de /$originalLength a /$newLength generaría $count subredes; '
+          'supera el límite de visualización ($maxResults).',
+        );
       }
       return original.splitToLength(newLength).map(Ipv4SubnetRow.new).toList();
     }
@@ -70,7 +74,9 @@ class Ipv4Subnetting {
 
   static int extraBitsForCount(int desiredCount) {
     if (desiredCount < 1) {
-      throw Ipv4SubnettingException('La cantidad de subredes debe ser al menos 1.');
+      throw Ipv4SubnettingException(
+        'La cantidad de subredes debe ser al menos 1.',
+      );
     }
     var bits = 0;
     var capacity = 1;
@@ -90,13 +96,15 @@ class Ipv4Subnetting {
     final newLength = base.length + extraBits;
     if (newLength > 32) {
       throw Ipv4SubnettingException(
-          'No es posible crear $desiredCount subredes a partir de ${base.toString()}: '
-          'se necesitarían ${base.length + extraBits} bits de prefijo, más de los 32 disponibles.');
+        'No es posible crear $desiredCount subredes a partir de ${base.toString()}: '
+        'se necesitarían ${base.length + extraBits} bits de prefijo, más de los 32 disponibles.',
+      );
     }
     final deliveredCount = 1 << extraBits;
     if (deliveredCount > maxResults) {
       throw Ipv4SubnettingException(
-          'Se generarían $deliveredCount subredes (/$newLength); supera el límite de visualización ($maxResults).');
+        'Se generarían $deliveredCount subredes (/$newLength); supera el límite de visualización ($maxResults).',
+      );
     }
     final rows = base.splitToLength(newLength).map(Ipv4SubnetRow.new).toList();
     return Ipv4SubnetPlan(
@@ -115,15 +123,20 @@ class Ipv4Subnetting {
     final neededLength = _smallestPrefixForHosts(hostsPerSubnet);
     if (neededLength < base.length) {
       throw Ipv4SubnettingException(
-          'La red base ${base.toString()} no alcanza para $hostsPerSubnet hosts en una sola subred '
-          '(se requeriría /$neededLength, una red mayor que la base).');
+        'La red base ${base.toString()} no alcanza para $hostsPerSubnet hosts en una sola subred '
+        '(se requeriría /$neededLength, una red mayor que la base).',
+      );
     }
     final deliveredCount = 1 << (neededLength - base.length);
     if (deliveredCount > maxResults) {
       throw Ipv4SubnettingException(
-          'Con /$neededLength se generarían $deliveredCount subredes; supera el límite de visualización ($maxResults).');
+        'Con /$neededLength se generarían $deliveredCount subredes; supera el límite de visualización ($maxResults).',
+      );
     }
-    final rows = base.splitToLength(neededLength).map(Ipv4SubnetRow.new).toList();
+    final rows = base
+        .splitToLength(neededLength)
+        .map(Ipv4SubnetRow.new)
+        .toList();
     return Ipv4SubnetPlan(
       rows: rows,
       newLength: neededLength,
@@ -152,8 +165,9 @@ class Ipv4Subnetting {
       final candidatePrefix = Ipv4Prefix(candidate, neededLength);
       if (candidatePrefix.broadcastAddress.value > end.value) {
         throw Ipv4SubnettingException(
-            'No hay espacio suficiente en ${base.toString()} para asignar $hosts hosts '
-            '(se requiere /$neededLength).');
+          'No hay espacio suficiente en ${base.toString()} para asignar $hosts hosts '
+          '(se requiere /$neededLength).',
+        );
       }
       resultByIndex[entry.key] = candidatePrefix;
       cursor = candidatePrefix.broadcastAddress + 1;
@@ -163,7 +177,9 @@ class Ipv4Subnetting {
 
   static int _smallestPrefixForHosts(int hosts) {
     if (hosts <= 0) {
-      throw Ipv4SubnettingException('La cantidad de hosts requerida debe ser mayor que 0.');
+      throw Ipv4SubnettingException(
+        'La cantidad de hosts requerida debe ser mayor que 0.',
+      );
     }
     if (hosts == 1) return 32;
     if (hosts == 2) return 31;
@@ -178,7 +194,8 @@ class Ipv4Subnetting {
   }
 
   static List<Ipv4Prefix> aggregate(List<Ipv4Prefix> input) {
-    var current = [...input]..sort((a, b) => a.network.value.compareTo(b.network.value));
+    var current = [...input]
+      ..sort((a, b) => a.network.value.compareTo(b.network.value));
     var changed = true;
     while (changed) {
       changed = false;
@@ -221,8 +238,15 @@ class Ipv6Subnetting {
     int newLength, {
     int maxResults = 4096,
   }) {
+    if (originalLength < 0 || originalLength > 128) {
+      throw Ipv6FormatException(
+        'La longitud de prefijo IPv6 debe estar entre 0 y 128.',
+      );
+    }
     if (newLength < 0 || newLength > 128) {
-      throw Ipv6SubnettingException('La nueva longitud debe estar entre 0 y 128.');
+      throw Ipv6SubnettingException(
+        'La nueva longitud debe estar entre 0 y 128.',
+      );
     }
     if (newLength == originalLength) {
       return [Ipv6Prefix(address, originalLength)];
@@ -238,12 +262,16 @@ class Ipv6Subnetting {
   static List<Ipv6Prefix> allocateSites(Ipv6Prefix site, int branchLength) =>
       site.splitToLength(branchLength);
 
-  static List<Ipv6Prefix> allocateLans(Ipv6Prefix branch, {int lanLength = 64}) =>
-      branch.splitToLength(lanLength);
+  static List<Ipv6Prefix> allocateLans(
+    Ipv6Prefix branch, {
+    int lanLength = 64,
+  }) => branch.splitToLength(lanLength);
 
   static int extraBitsForCount(int desiredCount) {
     if (desiredCount < 1) {
-      throw Ipv6SubnettingException('La cantidad de subredes debe ser al menos 1.');
+      throw Ipv6SubnettingException(
+        'La cantidad de subredes debe ser al menos 1.',
+      );
     }
     var bits = 0;
     var capacity = 1;
@@ -263,13 +291,15 @@ class Ipv6Subnetting {
     final newLength = base.length + extraBits;
     if (newLength > 128) {
       throw Ipv6SubnettingException(
-          'No es posible crear $desiredCount subredes a partir de ${base.toString()}: '
-          'se necesitarían $newLength bits de prefijo, más de los 128 disponibles.');
+        'No es posible crear $desiredCount subredes a partir de ${base.toString()}: '
+        'se necesitarían $newLength bits de prefijo, más de los 128 disponibles.',
+      );
     }
     final deliveredCount = 1 << extraBits;
     if (deliveredCount > maxResults) {
       throw Ipv6SubnettingException(
-          'Se generarían $deliveredCount subredes (/$newLength); supera el límite de visualización ($maxResults).');
+        'Se generarían $deliveredCount subredes (/$newLength); supera el límite de visualización ($maxResults).',
+      );
     }
     final rows = base.splitToLength(newLength, maxResults: maxResults);
     return Ipv6SubnetPlan(
@@ -293,5 +323,6 @@ class Ipv6SubnetPlan {
     this.requestedCount,
   });
 
-  bool get wasRounded => requestedCount != null && requestedCount != deliveredCount;
+  bool get wasRounded =>
+      requestedCount != null && requestedCount != deliveredCount;
 }
