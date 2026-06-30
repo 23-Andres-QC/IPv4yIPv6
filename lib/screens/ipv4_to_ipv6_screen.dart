@@ -123,11 +123,15 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
               outputs = [_TransitionOutput('IPv4', v4.dotted)];
             }
           } else {
-            throw TransitionException(
-              'No se detectó un formato convertible automáticamente. Usa IPv4-mapped, NAT64 64:ff9b::/96, NAT64 local 64:ff9b:1::/48 o 6to4.',
-            );
+            throw TransitionException('La dirección IPv6 no contiene IPv4.');
           }
         }
+      } on Ipv4FormatException {
+        error = 'Dirección IPv4 no válida';
+      } on Ipv6FormatException {
+        error = 'Dirección IPv6 no válida';
+      } on TransitionException catch (e) {
+        error = e.message;
       } catch (e) {
         error = e.toString();
       }
@@ -144,106 +148,115 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            context.t('Transición IPv4 ↔ IPv6'),
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            context.t(
-              'IPv4-mapped (RFC 4291), incrustación RFC 6052 (NAT64/SIIT) y 6to4 (RFC 3056).',
-            ),
-          ),
-          const SizedBox(height: 16),
-          SegmentedButton<_Direction>(
-            segments: [
-              ButtonSegment(
-                value: _Direction.v4ToV6,
-                label: Text(context.t('IPv4 → IPv6')),
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 860),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.t('Transición IPv4 ↔ IPv6'),
+                style: Theme.of(context).textTheme.headlineSmall,
               ),
-              ButtonSegment(
-                value: _Direction.v6ToV4,
-                label: Text(context.t('IPv6 → IPv4')),
-              ),
-            ],
-            selected: {direction},
-            onSelectionChanged: (s) {
-              setState(() {
-                direction = s.first;
-                error = null;
-                methodText = null;
-                outputs = [];
-                warnings = [];
-              });
-            },
-          ),
-          const SizedBox(height: 16),
-          if (direction == _Direction.v4ToV6)
-            ..._buildV4ToV6Inputs()
-          else
-            ..._buildV6ToV4Inputs(),
-          const SizedBox(height: 16),
-          FilledButton(onPressed: _run, child: Text(context.t('Transformar'))),
-          const SizedBox(height: 20),
-          if (error != null)
-            Card(
-              color: Theme.of(context).colorScheme.errorContainer,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      context.t('Revisa los datos de transición'),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(error!),
-                  ],
+              const SizedBox(height: 4),
+              Text(
+                context.t(
+                  'IPv4-mapped (RFC 4291), incrustación RFC 6052 (NAT64/SIIT) y 6to4 (RFC 3056).',
                 ),
               ),
-            ),
-          if (outputs.isNotEmpty)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (methodText != null)
-                      Text(
-                        'Método: $methodText',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    if (methodText != null) const SizedBox(height: 8),
-                    for (final output in outputs) ...[
-                      _buildOutputRow(output),
-                      for (final warning in output.warnings)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4, left: 170),
-                          child: Text(warning),
+              const SizedBox(height: 16),
+              SegmentedButton<_Direction>(
+                segments: [
+                  ButtonSegment(
+                    value: _Direction.v4ToV6,
+                    label: Text(context.t('IPv4 → IPv6')),
+                  ),
+                  ButtonSegment(
+                    value: _Direction.v6ToV4,
+                    label: Text(context.t('IPv6 → IPv4')),
+                  ),
+                ],
+                selected: {direction},
+                onSelectionChanged: (s) {
+                  setState(() {
+                    direction = s.first;
+                    error = null;
+                    methodText = null;
+                    outputs = [];
+                    warnings = [];
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              if (direction == _Direction.v4ToV6)
+                ..._buildV4ToV6Inputs()
+              else
+                ..._buildV6ToV4Inputs(),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: _run,
+                child: Text(context.t('Transformar')),
+              ),
+              const SizedBox(height: 20),
+              if (error != null)
+                Card(
+                  color: Theme.of(context).colorScheme.errorContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          context.t('Revisa los datos de transición'),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                      if (output != outputs.last) const Divider(),
-                    ],
-                    if (warnings.isNotEmpty) const Divider(),
-                    if (warnings.isNotEmpty)
-                      Text(
-                        context.t('Advertencias'),
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    for (final n in warnings)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(n),
-                      ),
-                  ],
+                        const SizedBox(height: 4),
+                        Text(error!),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
-        ],
+              if (outputs.isNotEmpty)
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (methodText != null)
+                          Text(
+                            'Método: $methodText',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        if (methodText != null) const SizedBox(height: 8),
+                        for (final output in outputs) ...[
+                          _buildOutputRow(output),
+                          for (final warning in output.warnings)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4, left: 170),
+                              child: Text(warning),
+                            ),
+                          if (output != outputs.last) const Divider(),
+                        ],
+                        if (warnings.isNotEmpty) const Divider(),
+                        if (warnings.isNotEmpty)
+                          Text(
+                            context.t('Advertencias'),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        for (final n in warnings)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(n),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
