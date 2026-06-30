@@ -1,0 +1,10 @@
+.dart_tool/
+.git/
+.idea/
+build/
+coverage/
+*.log
+*.iml
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
