@@ -73,6 +73,21 @@ void main() {
     expect(find.textContaining('64:ff9b::808:808'), findsNothing);
   });
 
+  testWidgets('Transición IPv4 incorrecta no muestra resultados', (
+    tester,
+  ) async {
+    await tester.pumpWidget(wrap(const Ipv4ToIpv6Screen()));
+
+    await tester.enterText(find.byType(TextField).first, '999.1.1.1');
+    await tester.tap(find.widgetWithText(FilledButton, 'Transformar'));
+    await tester.pump();
+
+    expect(find.text('Dirección IPv4 no válida'), findsOneWidget);
+    expect(find.text('IPv4-mapped:'), findsNothing);
+    expect(find.text('NAT64 (RFC 6052):'), findsNothing);
+    expect(find.text('6to4:'), findsNothing);
+  });
+
   testWidgets('Transición IPv6 detecta formato y muestra una sola IPv4', (
     tester,
   ) async {
@@ -86,6 +101,37 @@ void main() {
     expect(find.text('IPv4:'), findsOneWidget);
     expect(find.text('8.8.8.8'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
+  });
+
+  testWidgets(
+    'Transición IPv6 válida sin formato reconocido indica que no contiene IPv4',
+    (tester) async {
+      await tester.pumpWidget(wrap(const Ipv4ToIpv6Screen()));
+
+      await tester.tap(find.text('IPv6 → IPv4'));
+      await tester.pump();
+      await tester.enterText(find.byType(TextField).first, '2001:db8::1');
+      await tester.tap(find.widgetWithText(FilledButton, 'Transformar'));
+      await tester.pump();
+
+      expect(find.text('La dirección IPv6 no contiene IPv4.'), findsOneWidget);
+      expect(find.text('IPv4:'), findsNothing);
+    },
+  );
+
+  testWidgets('Transición IPv6 incorrecta muestra mensaje exacto', (
+    tester,
+  ) async {
+    await tester.pumpWidget(wrap(const Ipv4ToIpv6Screen()));
+
+    await tester.tap(find.text('IPv6 → IPv4'));
+    await tester.pump();
+    await tester.enterText(find.byType(TextField).first, '2001:::bad');
+    await tester.tap(find.widgetWithText(FilledButton, 'Transformar'));
+    await tester.pump();
+
+    expect(find.text('Dirección IPv6 no válida'), findsOneWidget);
+    expect(find.text('IPv4:'), findsNothing);
   });
 
   testWidgets('Conectividad muestra advertencias para direcciones especiales', (
