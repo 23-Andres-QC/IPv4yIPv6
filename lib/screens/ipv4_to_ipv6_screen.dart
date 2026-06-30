@@ -64,6 +64,31 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
     return text.split('  (mixta:').first.trim();
   }
 
+  String _translatedMessage(String message) {
+    final ipv4Mapped = 'IPv4-mapped detectado';
+    if (message == ipv4Mapped) {
+      return context.t(ipv4Mapped);
+    }
+    final nat64 = 'RFC 6052 / NAT64 WKP /96 detectado';
+    if (message == nat64) {
+      return context.t(nat64);
+    }
+    final localNat64 = 'RFC 6052 / prefijo local 64:ff9b:1::/48 detectado';
+    if (message == localNat64) {
+      return context.t(localNat64);
+    }
+    final sixToFour = '6to4 detectado';
+    if (message == sixToFour) {
+      return context.t(sixToFour);
+    }
+    final sixToFourWarning =
+        'Advertencia: la dirección parece 6to4, pero no se pudo extraer una IPv4.';
+    if (message == sixToFourWarning) {
+      return context.t(sixToFourWarning);
+    }
+    return context.t(message);
+  }
+
   void _run() {
     setState(() {
       error = null;
@@ -212,7 +237,7 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
-                        Text(error!),
+                        Text(_translatedMessage(error!)),
                       ],
                     ),
                   ),
@@ -226,7 +251,7 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
                       children: [
                         if (methodText != null)
                           Text(
-                            'Método: $methodText',
+                            '${context.t('Método')}: ${_translatedMessage(methodText!)}',
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         if (methodText != null) const SizedBox(height: 8),
@@ -235,7 +260,7 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
                           for (final warning in output.warnings)
                             Padding(
                               padding: const EdgeInsets.only(top: 4, left: 170),
-                              child: Text(warning),
+                              child: Text(_translatedMessage(warning)),
                             ),
                           if (output != outputs.last) const Divider(),
                         ],
@@ -248,7 +273,7 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
                         for (final n in warnings)
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
-                            child: Text(n),
+                            child: Text(_translatedMessage(n)),
                           ),
                       ],
                     ),

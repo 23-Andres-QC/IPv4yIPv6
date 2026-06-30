@@ -147,6 +147,18 @@ const Map<String, String> _en = {
   'IPv6 → IPv4': 'IPv6 → IPv4',
   'Transformar': 'Transform',
   'Revisa los datos de transición': 'Check the transition data',
+  'Método': 'Method',
+  'IPv4-mapped detectado': 'IPv4-mapped detected',
+  'RFC 6052 / NAT64 WKP /96 detectado': 'RFC 6052 / NAT64 WKP /96 detected',
+  'RFC 6052 / prefijo local 64:ff9b:1::/48 detectado':
+      'RFC 6052 / local prefix 64:ff9b:1::/48 detected',
+  '6to4 detectado': '6to4 detected',
+  'Dirección IPv4 no válida': 'Invalid IPv4 address',
+  'Dirección IPv6 no válida': 'Invalid IPv6 address',
+  'La dirección IPv6 no contiene IPv4.':
+      'The IPv6 address does not contain IPv4.',
+  'Advertencia: la dirección parece 6to4, pero no se pudo extraer una IPv4.':
+      'Warning: the address looks like 6to4, but an IPv4 address could not be extracted.',
   'Advertencias': 'Warnings',
   'Dirección IPv4': 'IPv4 address',
   'Dirección IPv6': 'IPv6 address',
@@ -181,6 +193,36 @@ const Map<String, String> _en = {
   'El que recibe la comunicación': 'The one receiving communication',
   'Evaluar conectividad': 'Evaluate connectivity',
   'Revisa los datos de conectividad': 'Check the connectivity data',
+  'Extremo A': 'Endpoint A',
+  'Extremo B': 'Endpoint B',
+  'El prefijo no puede estar vacío.': 'The prefix cannot be empty.',
+  'El prefijo debe ser un número entero.': 'The prefix must be an integer.',
+  'broadcast limitado; no representa un host unicast.':
+      'limited broadcast; it does not represent a unicast host.',
+  'IPv4 reservada; no debe asumirse ruteable.':
+      'reserved IPv4 address; it should not be assumed routable.',
+  '0.0.0.0 es no especificada; no representa un destino de comunicación normal.':
+      '0.0.0.0 is unspecified; it does not represent a normal communication destination.',
+  'dirección loopback; solo es válida dentro del propio equipo.':
+      'loopback address; it is only valid inside the same device.',
+  'IPv4 privada; puede rutearse internamente, pero no directamente en Internet.':
+      'private IPv4 address; it can be routed internally, but not directly on the Internet.',
+  'IPv4 link-local/APIPA; solo aplica al enlace local.':
+      'IPv4 link-local/APIPA; it only applies to the local link.',
+  'IPv4 de documentación; útil para ejemplos, no para conectividad real.':
+      'documentation IPv4 address; useful for examples, not real connectivity.',
+  'IPv4 multicast; no representa un host unicast normal.':
+      'IPv4 multicast; it does not represent a normal unicast host.',
+  ':: es no especificada; no representa un destino de comunicación normal.':
+      ':: is unspecified; it does not represent a normal communication destination.',
+  'IPv6 link-local; requiere mismo enlace y normalmente zona/interfaz.':
+      'IPv6 link-local; it requires the same link and usually a zone/interface.',
+  'ULA; puede rutearse internamente, pero no directamente en Internet.':
+      'ULA; it can be routed internally, but not directly on the Internet.',
+  'IPv6 multicast; no representa un host unicast normal.':
+      'IPv6 multicast; it does not represent a normal unicast host.',
+  'IPv6 de documentación; útil para ejemplos, no para conectividad real.':
+      'documentation IPv6 address; useful for examples, not real connectivity.',
   'Resultado del análisis': 'Analysis result',
   'Comunicación directa': 'Direct communication',
   'Necesita router': 'Needs router',
@@ -235,6 +277,24 @@ const Map<String, String> _en = {
       'One uses IPv4 and the other IPv6. They can communicate, but they need a device that translates between the two IP families.',
   'No hay forma de que se comuniquen. Uno usa IPv4 y el otro IPv6, y no hay ningún traductor ni dispositivo que soporte los dos tipos al mismo tiempo.':
       'They cannot communicate directly. One uses IPv4 and the other IPv6, and there is no translator or device supporting both families at the same time.',
+  'Ambos extremos declaran pila dual. La conectividad debería usar una familia común disponible, idealmente IPv6, pero esta pantalla no verifica direcciones ni rutas adicionales de esa segunda pila.':
+      'Both endpoints declare dual-stack. Connectivity should use an available common family, ideally IPv6, but this screen does not verify extra addresses or routes for that second stack.',
+  'Alguno de los extremos declara un mecanismo de traducción o túnel. La conectividad puede existir si ese mecanismo está correctamente desplegado y tiene rutas de ida y vuelta.':
+      'One of the endpoints declares a translation or tunneling mechanism. Connectivity can exist if that mechanism is correctly deployed and has return routes.',
+  'Si el caso es NAT64 con Well-Known Prefix 64:ff9b::/96, verifica que la IPv4 involucrada sea global (RFC 6052 §3.1).':
+      'If the case is NAT64 with Well-Known Prefix 64:ff9b::/96, verify that the involved IPv4 address is global (RFC 6052 Section 3.1).',
+  'Las direcciones son de familias distintas (IPv4 vs IPv6) y ninguno de los extremos declara dual-stack ni un mecanismo de traducción/túnel disponible.':
+      'The addresses are from different families (IPv4 vs IPv6), and neither endpoint declares dual-stack or an available translation/tunnel mechanism.',
+  'Opciones: habilitar dual-stack o desplegar un mecanismo de traducción/túnel adecuado al escenario.':
+      'Options: enable dual-stack or deploy a translation/tunnel mechanism suitable for the scenario.',
+  'Ambas direcciones pertenecen a la misma red indicada. ARP puede resolver la dirección de capa 2 sin salto de router, asumiendo que comparten el mismo dominio de enlace.':
+      'Both addresses belong to the indicated network. ARP can resolve the layer-2 address without a router hop, assuming they share the same link domain.',
+  'Las direcciones están en redes distintas. Se requiere un router con ruta hacia cada prefijo y de vuelta. Esta pantalla no verifica la tabla de rutas real.':
+      'The addresses are on different networks. A router with a route to each prefix and back is required. This screen does not verify the real routing table.',
+  'Ambas direcciones comparten el prefijo de enlace. Neighbor Discovery (RFC 4861) puede resolver la dirección de capa 2 sin pasar por un router, asumiendo que comparten el mismo enlace.':
+      'Both addresses share the link prefix. Neighbor Discovery (RFC 4861) can resolve the layer-2 address without going through a router, assuming they share the same link.',
+  'Las direcciones están en prefijos de enlace distintos. Se requiere un router con ruta hacia cada prefijo.':
+      'The addresses are on different link prefixes. A router with a route to each prefix is required.',
   'Referencia normativa': 'Standards reference',
   'RFC que sustentan los cálculos y reglas de validación de este sistema.':
       'RFCs that support this system calculations and validation rules.',

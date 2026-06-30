@@ -398,6 +398,70 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
     return out;
   }
 
+  String _localizedWarning(String warning) {
+    final source = context.t('Extremo A');
+    final target = context.t('Extremo B');
+    final withLocalizedLabel = warning
+        .replaceFirst('Extremo A', source)
+        .replaceFirst('Extremo B', target);
+    final separator = withLocalizedLabel.indexOf(': ');
+    if (separator == -1) return context.t(withLocalizedLabel);
+    final label = withLocalizedLabel.substring(0, separator);
+    final message = withLocalizedLabel.substring(separator + 2);
+    return '$label: ${context.t(message)}';
+  }
+
+  String _localizedDetail(String detail) {
+    if (detail.startsWith('Ambos extremos declaran pila dual.')) {
+      return context.t(
+        'Ambos extremos declaran pila dual. La conectividad debería usar una familia común disponible, idealmente IPv6, pero esta pantalla no verifica direcciones ni rutas adicionales de esa segunda pila.',
+      );
+    }
+    if (detail.startsWith('Alguno de los extremos declara un mecanismo')) {
+      return context.t(
+        'Alguno de los extremos declara un mecanismo de traducción o túnel. La conectividad puede existir si ese mecanismo está correctamente desplegado y tiene rutas de ida y vuelta.',
+      );
+    }
+    if (detail.startsWith('Si el caso es NAT64')) {
+      return context.t(
+        'Si el caso es NAT64 con Well-Known Prefix 64:ff9b::/96, verifica que la IPv4 involucrada sea global (RFC 6052 §3.1).',
+      );
+    }
+    if (detail.startsWith('Las direcciones son de familias distintas')) {
+      return context.t(
+        'Las direcciones son de familias distintas (IPv4 vs IPv6) y ninguno de los extremos declara dual-stack ni un mecanismo de traducción/túnel disponible.',
+      );
+    }
+    if (detail.startsWith('Opciones: habilitar dual-stack')) {
+      return context.t(
+        'Opciones: habilitar dual-stack o desplegar un mecanismo de traducción/túnel adecuado al escenario.',
+      );
+    }
+    if (detail.startsWith('Ambas direcciones pertenecen a la misma red')) {
+      return context.t(
+        'Ambas direcciones pertenecen a la misma red indicada. ARP puede resolver la dirección de capa 2 sin salto de router, asumiendo que comparten el mismo dominio de enlace.',
+      );
+    }
+    if (detail.startsWith('Las direcciones están en redes distintas')) {
+      return context.t(
+        'Las direcciones están en redes distintas. Se requiere un router con ruta hacia cada prefijo y de vuelta. Esta pantalla no verifica la tabla de rutas real.',
+      );
+    }
+    if (detail.startsWith('Ambas direcciones comparten el prefijo de enlace')) {
+      return context.t(
+        'Ambas direcciones comparten el prefijo de enlace. Neighbor Discovery (RFC 4861) puede resolver la dirección de capa 2 sin pasar por un router, asumiendo que comparten el mismo enlace.',
+      );
+    }
+    if (detail.startsWith(
+      'Las direcciones están en prefijos de enlace distintos',
+    )) {
+      return context.t(
+        'Las direcciones están en prefijos de enlace distintos. Se requiere un router con ruta hacia cada prefijo.',
+      );
+    }
+    return context.t(detail);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -549,7 +613,7 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
-                    Text(error!),
+                    Text(context.t(error!)),
                   ],
                 ),
               ),
@@ -661,6 +725,7 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
   }
 
   Widget _legendChip(Color color, String label) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -672,7 +737,7 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
         const SizedBox(width: 4),
         Text(
           label,
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
+          style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
         ),
       ],
     );
@@ -737,7 +802,7 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
               for (final warning in warnings)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
-                  child: Text(warning),
+                  child: Text(_localizedWarning(warning)),
                 ),
             ],
             const SizedBox(height: 6),
@@ -765,12 +830,12 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
                       Icon(
                         Icons.info_outline,
                         size: 15,
-                        color: Colors.grey.shade600,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          d,
+                          _localizedDetail(d),
                           style: TextStyle(
                             fontSize: 13,
                             color: theme.colorScheme.onSurface,
