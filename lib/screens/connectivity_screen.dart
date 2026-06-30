@@ -462,6 +462,15 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
     return context.t(detail);
   }
 
+  String _localizedConnectivityText(String text) {
+    const prefixRange = 'El prefijo debe estar entre 0 y ';
+    if (text.startsWith(prefixRange) && text.endsWith('.')) {
+      final max = text.substring(prefixRange.length, text.length - 1);
+      return '${context.t(prefixRange.trimRight())} $max.';
+    }
+    return context.t(text);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -613,7 +622,7 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
-                    Text(context.t(error!)),
+                    Text(_localizedConnectivityText(error!)),
                   ],
                 ),
               ),
@@ -1339,7 +1348,7 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                info.warning ?? '',
+                _localizedConnectivityText(info.warning ?? ''),
                 style: TextStyle(fontSize: 12, color: Colors.red.shade700),
               ),
             ),
@@ -1403,7 +1412,7 @@ class _ConnectivityScreenState extends State<ConnectivityScreen> {
           Icon(icon, size: 13, color: colorScheme.onSurfaceVariant),
           const SizedBox(width: 5),
           Text(
-            '$label ',
+            '${context.t(label)} ',
             style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
           ),
           Expanded(

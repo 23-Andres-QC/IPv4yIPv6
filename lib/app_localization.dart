@@ -59,7 +59,20 @@ const Map<String, String> _en = {
   'Prefijo': 'Prefix',
   'Bits de red': 'Network bits',
   'Calcular': 'Calculate',
+  'Copiado': 'Copied',
   'Dirección inválida': 'Invalid address',
+  'Dirección inválida. Usa el formato correcto: 192.168.0.1':
+      'Invalid address. Use the correct format: 192.168.0.1',
+  'Dirección IPv6 inválida. Usa el formato: 2001:db8::1':
+      'Invalid IPv6 address. Use the format: 2001:db8::1',
+  'El prefijo debe ser un número entre 0 y 128. Ej: 64':
+      'The prefix must be a number between 0 and 128. Example: 64',
+  'El prefijo debe ser un número entre 0 y 32. Ej: 24':
+      'The prefix must be a number between 0 and 32. Example: 24',
+  'El prefijo debe ser un número entre 0 y 128.':
+      'The prefix must be a number between 0 and 128.',
+  'El prefijo debe ser un número entre 0 y 32.':
+      'The prefix must be a number between 0 and 32.',
   'Detalles de la subred': 'Subnet details',
   'Ver tipo de red': 'View network type',
   'Red': 'Network',
@@ -90,6 +103,8 @@ const Map<String, String> _en = {
   'IPv6 con IPv4 embebida': 'IPv6 with embedded IPv4',
   'Inicio del prefijo': 'Prefix start',
   'Fin del prefijo': 'Prefix end',
+  'Primera dirección del bloque': 'First address in the block',
+  'Última dirección del bloque': 'Last address in the block',
   'Direcciones totales': 'Total addresses',
   'Hosts utilizables': 'Usable hosts',
   'Representación binaria': 'Binary representation',
@@ -98,10 +113,40 @@ const Map<String, String> _en = {
   'Bits de máscara': 'Mask bits',
   'Rango de subred': 'Subnet range',
   'Copiar valor': 'Copy value',
+  'Separador CIDR: divide la dirección del prefijo de red':
+      'CIDR separator: divides the address from the network prefix',
   'Ver cada bit de la dirección — para estudiantes y profesionales':
       'View each address bit - for students and professionals',
   'Red Pública': 'Public network',
   'Red Privada': 'Private network',
+  'No especificada': 'Unspecified',
+  'No especificada (0.0.0.0)': 'Unspecified (0.0.0.0)',
+  'Privada': 'Private',
+  'Privada (RFC 1918)': 'Private (RFC 1918)',
+  'Link-local / APIPA': 'Link-local / APIPA',
+  'Link-local / APIPA (169.254.0.0/16, RFC 3927)':
+      'Link-local / APIPA (169.254.0.0/16, RFC 3927)',
+  'Compartida CGN': 'Shared CGN',
+  'Compartida CGN (100.64.0.0/10, RFC 6598)':
+      'Shared CGN (100.64.0.0/10, RFC 6598)',
+  'Documentación': 'Documentation',
+  'Documentación (RFC 5737) — no usar en producción':
+      'Documentation (RFC 5737) - do not use in production',
+  'Benchmarking (198.18.0.0/15, RFC 2544)':
+      'Benchmarking (198.18.0.0/15, RFC 2544)',
+  'Multicast (clase D, 224.0.0.0/4)': 'Multicast (class D, 224.0.0.0/4)',
+  'Broadcast limitado': 'Limited broadcast',
+  'Broadcast limitado (255.255.255.255)': 'Limited broadcast (255.255.255.255)',
+  'Reservada': 'Reserved',
+  'Reservada (clase E, 240.0.0.0/4)': 'Reserved (class E, 240.0.0.0/4)',
+  'Unicast global': 'Global unicast',
+  'Unicast global (potencialmente ruteable en Internet)':
+      'Global unicast (potentially routable on the Internet)',
+  'Link-local': 'Link-local',
+  'Unique Local Address / ULA': 'Unique Local Address / ULA',
+  'IPv4-mapped': 'IPv4-mapped',
+  'NAT64 WKP': 'NAT64 WKP',
+  'Prefijo local NAT64': 'Local NAT64 prefix',
   'Esta dirección es accesible desde Internet.':
       'This address is reachable from the Internet.',
   'Esta dirección pertenece a una red local. No es accesible desde Internet.':
@@ -110,6 +155,46 @@ const Map<String, String> _en = {
       'This IPv6 address is reachable from the Internet.',
   'Esta dirección IPv6 pertenece a una red local (ULA). No es accesible desde Internet.':
       'This IPv6 address belongs to a local network (ULA). It is not reachable from the Internet.',
+  'RFC 3021: en prefijos /31, ambas IPs son utilizables como host (enlace punto a punto).':
+      'RFC 3021: in /31 prefixes, both IPs are usable as hosts (point-to-point link).',
+  'Host route /32: representa un único dispositivo específico, sin subred.':
+      'Host route /32: represents a single specific device, without a subnet.',
+  'IPv6 no usa broadcast. La difusión grupal se realiza con multicast (RFC 4291) y Neighbor Discovery (RFC 4861).':
+      'IPv6 does not use broadcast. Group delivery is done with multicast (RFC 4291) and Neighbor Discovery (RFC 4861).',
+  'Uso en redes locales (hogares, oficinas). No enrutable en Internet.':
+      'Used in local networks (homes, offices). Not routable on the Internet.',
+  'Dirección pública. Puede ser alcanzada desde cualquier punto de Internet.':
+      'Public address. It can be reached from anywhere on the Internet.',
+  'Dirección de prueba interna. El tráfico nunca abandona el dispositivo.':
+      'Internal test address. Traffic never leaves the device.',
+  'Envío simultáneo a múltiples receptores suscritos a un grupo.':
+      'Simultaneous delivery to multiple receivers subscribed to a group.',
+  'Asignada automáticamente (APIPA) cuando no hay servidor DHCP disponible.':
+      'Automatically assigned (APIPA) when no DHCP server is available.',
+  'Reservada solo para ejemplos y documentación técnica. No usar en producción.':
+      'Reserved only for examples and technical documentation. Do not use in production.',
+  'Usada por proveedores de Internet en redes CGN/LSN (Carrier-Grade NAT).':
+      'Used by Internet providers in CGN/LSN networks (Carrier-Grade NAT).',
+  'Reservada para pruebas de rendimiento de red (RFC 2544).':
+      'Reserved for network benchmarking tests (RFC 2544).',
+  'Envía a todos los dispositivos de la red local sin conocer la subred.':
+      'Sends to all devices on the local network without knowing the subnet.',
+  'Reservada para uso experimental futuro. No debe asignarse.':
+      'Reserved for future experimental use. It must not be assigned.',
+  'Equivalente IPv6 de las IPs privadas. Solo válida dentro de una organización.':
+      'IPv6 equivalent of private IPs. Only valid within an organization.',
+  'Dirección pública IPv6. Enrutable en Internet.':
+      'Public IPv6 address. Routable on the Internet.',
+  'Solo válida en el mismo segmento de red. No se puede rutear.':
+      'Only valid on the same network segment. It cannot be routed.',
+  'Envío grupal. No existe broadcast en IPv6.':
+      'Group delivery. Broadcast does not exist in IPv6.',
+  'Dirección interna del dispositivo. Equivale a 127.0.0.1 en IPv4.':
+      'Internal device address. Equivalent to 127.0.0.1 in IPv4.',
+  'Reservada para ejemplos y documentación técnica.':
+      'Reserved for examples and technical documentation.',
+  'Representación IPv6 de una dirección IPv4. Solo uso interno.':
+      'IPv6 representation of an IPv4 address. Internal use only.',
   'Entendido': 'Got it',
   'Subnetting': 'Subnetting',
   'Calcula red, broadcast, hosts y transicion /p -> /q.':
@@ -125,6 +210,7 @@ const Map<String, String> _en = {
   'Red base IPv4': 'IPv4 base network',
   'Red base IPv6': 'IPv6 base network',
   'Prefijo base': 'Base prefix',
+  'Base': 'Base',
   'Cantidad de subredes': 'Subnet count',
   'Crear campos': 'Create fields',
   'Hosts requeridos por subred': 'Required hosts per subnet',
@@ -134,6 +220,13 @@ const Map<String, String> _en = {
   'Ayuda': 'Help',
   'Ayuda de subnetting': 'Subnetting help',
   'Elige IPv4 o IPv6.': 'Choose IPv4 or IPv6.',
+  'La mascara original': 'The original mask',
+  'La mascara destino': 'The target mask',
+  'La cantidad de subredes': 'The subnet count',
+  'El prefijo base': 'The base prefix',
+  'debe ser un número entero': 'must be an integer',
+  'La cantidad de subredes debe estar entre 1 y 32.':
+      'The subnet count must be between 1 and 32.',
   'Address acepta una IP de host o una direccion de red.':
       'Address accepts a host IP or a network address.',
   'Netmask es el prefijo actual, por ejemplo /24.':
@@ -170,6 +263,31 @@ const Map<String, String> _en = {
   'Red base VLSM': 'VLSM base network',
   'Plan VLSM': 'VLSM plan',
   'Direcciones libres': 'Free addresses',
+  'Direcciones pedidas': 'Requested addresses',
+  'Direcciones asignadas': 'Assigned addresses',
+  'Libres': 'Free',
+  'Hosts pedidos': 'Requested hosts',
+  'Hosts útiles': 'Usable hosts',
+  'Hosts por red': 'Hosts per network',
+  'Solicitud': 'Request',
+  'Red base': 'Base network',
+  'Rango': 'Range',
+  'IPv6 no usa broadcast': 'IPv6 does not use broadcast',
+  'Red=IP AND mascara; Broadcast=Red OR wildcard':
+      'Network=IP AND mask; Broadcast=Network OR wildcard',
+  'Sin cambio': 'No change',
+  'y': 'and',
+  'describen la misma red': 'describe the same network',
+  'Dividir': 'Split',
+  'Agregar': 'Aggregate',
+  'Subredes creadas': 'Created subnets',
+  'Mostrando solo la primera': 'Showing only the first',
+  'Direcciones/subred': 'Addresses/subnet',
+  'Salto': 'Step',
+  'Hosts/subred': 'Hosts/subnet',
+  'Agrupa': 'Groups',
+  'redes': 'networks',
+  'Superred': 'Supernet',
   'hosts pedidos': 'requested hosts',
   'direcciones pedidas': 'requested addresses',
   'Bloque': 'Block',
@@ -200,6 +318,8 @@ const Map<String, String> _en = {
       'The IPv6 address does not contain IPv4.',
   'Advertencia: la dirección parece 6to4, pero no se pudo extraer una IPv4.':
       'Warning: the address looks like 6to4, but an IPv4 address could not be extracted.',
+  'Advertencia RFC 6052 §3.1: el Well-Known Prefix 64:ff9b::/96 NO debe usarse con direcciones IPv4 no globales (ej. RFC 1918). Esos paquetes deberían descartarse. Si necesitas representar una IPv4 privada, usa el prefijo local 64:ff9b:1::/48 (RFC 8215) o un Network-Specific Prefix propio.':
+      'Warning RFC 6052 Section 3.1: the Well-Known Prefix 64:ff9b::/96 must NOT be used with non-global IPv4 addresses (for example RFC 1918). Those packets should be discarded. If you need to represent a private IPv4 address, use the local prefix 64:ff9b:1::/48 (RFC 8215) or your own Network-Specific Prefix.',
   'Advertencias': 'Warnings',
   'Dirección IPv4': 'IPv4 address',
   'Dirección IPv6': 'IPv6 address',
@@ -238,6 +358,8 @@ const Map<String, String> _en = {
   'Extremo B': 'Endpoint B',
   'El prefijo no puede estar vacío.': 'The prefix cannot be empty.',
   'El prefijo debe ser un número entero.': 'The prefix must be an integer.',
+  'Ingresa un número válido.': 'Enter a valid number.',
+  'El prefijo debe estar entre 0 y': 'The prefix must be between 0 and',
   'broadcast limitado; no representa un host unicast.':
       'limited broadcast; it does not represent a unicast host.',
   'IPv4 reservada; no debe asumirse ruteable.':
@@ -341,4 +463,67 @@ const Map<String, String> _en = {
       'RFCs that support this system calculations and validation rules.',
   'Tema': 'Topic',
   'Por qué importa': 'Why it matters',
+  'Base histórica de la dirección IPv4 y clases A/B/C.':
+      'Historical basis for IPv4 addressing and A/B/C classes.',
+  'Prefijos, notación classless, longest match, agregación de rutas.':
+      'Prefixes, classless notation, longest match, and route aggregation.',
+  'IPv4 privado': 'Private IPv4',
+  'Rangos 10/8, 172.16/12, 192.168/16 y por qué filtrarlos.':
+      '10/8, 172.16/12, and 192.168/16 ranges, and why they should be filtered.',
+  '/31 en IPv4': '/31 in IPv4',
+  'Permite usar ambas direcciones de un /31 en enlaces punto a punto.':
+      'Allows both addresses in a /31 to be used on point-to-point links.',
+  'Documentación IPv4': 'IPv4 documentation',
+  '192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 para ejemplos.':
+      '192.0.2.0/24, 198.51.100.0/24, and 203.0.113.0/24 for examples.',
+  'Arquitectura IPv6': 'IPv6 architecture',
+  'Tipos de dirección, texto, prefijos, IPv4-mapped, sin broadcast.':
+      'Address types, text, prefixes, IPv4-mapped addresses, and no broadcast.',
+  'Texto canónico IPv6': 'Canonical IPv6 text',
+  'Minúsculas, "::" óptimo, sin ceros a la izquierda.':
+      'Lowercase, optimal "::", and no leading zeroes.',
+  'fc00::/7, equivalente funcional a "privado" en IPv6.':
+      'fc00::/7, functional equivalent to "private" in IPv6.',
+  'Documentación IPv6': 'IPv6 documentation',
+  '2001:db8::/32 reservado para ejemplos.':
+      '2001:db8::/32 reserved for examples.',
+  'Frontera de 64 bits': '64-bit boundary',
+  'Por qué /64 es la unidad operativa estándar de un enlace.':
+      'Why /64 is the standard operational unit for a link.',
+  'Asignación de sitio': 'Site assignment',
+  'Ya no recomienda /48 único; depende de uso y crecimiento.':
+      'No longer recommends a single /48; it depends on usage and growth.',
+  'Resolución de vecinos y descubrimiento de routers en IPv6.':
+      'Neighbor resolution and router discovery in IPv6.',
+  'Autoconfiguración sin estado y Duplicate Address Detection.':
+      'Stateless autoconfiguration and Duplicate Address Detection.',
+  'Direcciones, parámetros y delegación de prefijos.':
+      'Addresses, parameters, and prefix delegation.',
+  'Especificación IPv6': 'IPv6 specification',
+  'MTU mínimo de enlace de 1280 octetos.': 'Minimum link MTU of 1280 octets.',
+  'PMTUD en IPv6': 'PMTUD in IPv6',
+  'Depende de ICMPv6 Packet Too Big; no filtrar indiscriminadamente.':
+      'Depends on ICMPv6 Packet Too Big; do not filter it indiscriminately.',
+  'IPv4 embebida en IPv6': 'IPv4 embedded in IPv6',
+  'Algoritmo de incrustación/extracción, PL∈{32,40,48,56,64,96}.':
+      'Embedding/extraction algorithm, PL in {32,40,48,56,64,96}.',
+  'Traducción stateless de cabeceras IPv4/IPv6.':
+      'Stateless translation of IPv4/IPv6 headers.',
+  'Traducción stateful para clientes IPv6-only hacia IPv4.':
+      'Stateful translation for IPv6-only clients toward IPv4.',
+  'Síntesis de registros AAAA a partir de registros A.':
+      'Synthesis of AAAA records from A records.',
+  '64:ff9b:1::/48 para uso interno, sin restricción del WKP.':
+      '64:ff9b:1::/48 for internal use, without WKP restrictions.',
+  'Túnel automático legado vía prefijo 2002::/16.':
+      'Legacy automatic tunnel through prefix 2002::/16.',
+  '6to4 anycast': '6to4 anycast',
+  'Desaconseja el despliegue anycast de 6to4.':
+      'Discourages 6to4 anycast deployment.',
+  'IPv4 sobre acceso IPv6 mediante túnel hacia un AFTR + NAT44.':
+      'IPv4 over IPv6 access through a tunnel to an AFTR + NAT44.',
+  'Mapeo de direcciones y puertos con encapsulación.':
+      'Address and port mapping with encapsulation.',
+  'Mapeo de direcciones y puertos con traducción (menor overhead).':
+      'Address and port mapping with translation (lower overhead).',
 };

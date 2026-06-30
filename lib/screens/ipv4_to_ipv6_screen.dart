@@ -86,6 +86,33 @@ class _Ipv4ToIpv6ScreenState extends State<Ipv4ToIpv6Screen> {
     if (message == sixToFourWarning) {
       return context.t(sixToFourWarning);
     }
+    if (message.startsWith('Advertencia RFC 6052 §3.1:')) {
+      return context.t(
+        'Advertencia RFC 6052 §3.1: el Well-Known Prefix 64:ff9b::/96 NO debe usarse con direcciones IPv4 no globales (ej. RFC 1918). Esos paquetes deberían descartarse. Si necesitas representar una IPv4 privada, usa el prefijo local 64:ff9b:1::/48 (RFC 8215) o un Network-Specific Prefix propio.',
+      );
+    }
+    if (message.startsWith(
+      'Aviso: el prefijo IPv6 ingresado contiene bits fuera de /',
+    )) {
+      if (!context.isEnglish) return message;
+      final match = RegExp(
+        r'fuera de /(\d+); se usará ([^ ]+)\.',
+      ).firstMatch(message);
+      if (match != null) {
+        return 'Notice: the entered IPv6 prefix contains bits outside /${match.group(1)}; ${match.group(2)} will be used.';
+      }
+    }
+    if (message.startsWith(
+      'Advertencia: 6to4 requiere una IPv4 pública única;',
+    )) {
+      if (!context.isEnglish) return message;
+      final match = RegExp(
+        r'única; ([^ ]+) está clasificada como (.+)\.',
+      ).firstMatch(message);
+      if (match != null) {
+        return 'Warning: 6to4 requires a unique public IPv4 address; ${match.group(1)} is classified as ${context.t(match.group(2)!)}.';
+      }
+    }
     return context.t(message);
   }
 

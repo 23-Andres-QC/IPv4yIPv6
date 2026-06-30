@@ -82,7 +82,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               size: 18,
             ),
             const SizedBox(width: 8),
-            Text('Copiado: $text'),
+            Text('${context.t('Copiado')}: $text'),
           ],
         ),
         duration: const Duration(seconds: 2),
@@ -255,8 +255,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 Padding(
                   padding: const EdgeInsets.only(top: 14, left: 10, right: 10),
                   child: Tooltip(
-                    message:
-                        'Separador CIDR: divide la dirección del prefijo de red',
+                    message: context.t(
+                      'Separador CIDR: divide la dirección del prefijo de red',
+                    ),
                     child: Text(
                       '/',
                       style: TextStyle(
@@ -337,7 +338,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      msg,
+                      context.t(msg),
                       style: TextStyle(
                         color: colorScheme.onErrorContainer,
                         fontSize: 13,
@@ -386,7 +387,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     ),
                     IconButton(
                       icon: Icon(_classIcon(cls), color: clsColor),
-                      tooltip: 'Ver tipo de red',
+                      tooltip: context.t('Ver tipo de red'),
                       onPressed: () => _showNetworkTypeDialog(context, cls),
                     ),
                   ],
@@ -477,7 +478,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             _buildBinaryLegend(context, includeRed: true),
             const SizedBox(height: 12),
             BitRow(
-              label: 'Dirección',
+              label: context.t('Dirección'),
               sublabel: p.address.dotted,
               spans: ipv4BitSpans(
                 p.address.value,
@@ -487,7 +488,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               trailing: p.address.dotted,
             ),
             BitRow(
-              label: 'Máscara',
+              label: context.t('Máscara'),
               sublabel: '/${p.length}',
               spans: ipv4BitSpans(
                 p.mask.value,
@@ -498,7 +499,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             ),
             BitRow(
               label: 'Wildcard',
-              sublabel: 'Inverso máscara',
+              sublabel: context.t('Inverso máscara'),
               spans: ipv4BitSpans(
                 p.wildcard.value,
                 0,
@@ -509,8 +510,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             ),
             _divider(),
             BitRow(
-              label: 'Red',
-              sublabel: 'Subred',
+              label: context.t('Red'),
+              sublabel: context.t('Subred'),
               spans: ipv4BitSpans(
                 p.network.value,
                 p.length,
@@ -520,7 +521,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             ),
             if (p.firstUsable != null)
               BitRow(
-                label: 'Primer host',
+                label: context.t('Primer host'),
                 sublabel: 'HostMin',
                 spans: ipv4BitSpans(
                   p.firstUsable!.value,
@@ -531,7 +532,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               ),
             if (p.lastUsable != null)
               BitRow(
-                label: 'Último host',
+                label: context.t('Último host'),
                 sublabel: 'HostMax',
                 spans: ipv4BitSpans(
                   p.lastUsable!.value,
@@ -542,7 +543,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               ),
             BitRow(
               label: 'Broadcast',
-              sublabel: 'Difusión',
+              sublabel: context.t('Difusión'),
               spans: ipv4BitSpans(
                 p.broadcastAddress.value,
                 p.length,
@@ -591,7 +592,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                         Icons.language_rounded,
                         color: colorScheme.primary,
                       ),
-                      tooltip: 'Ver tipo de red',
+                      tooltip: context.t('Ver tipo de red'),
                       onPressed: () => _showIpv6TypeDialog(context, cls),
                     ),
                   ],
@@ -656,7 +657,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             _buildBinaryLegend(context, includeRed: true),
             const SizedBox(height: 12),
             BitRow(
-              label: 'Dirección',
+              label: context.t('Dirección'),
               sublabel: p.address.canonical,
               spans: ipv6BitSpans(
                 p.address.value,
@@ -665,7 +666,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               ),
             ),
             BitRow(
-              label: 'Máscara',
+              label: context.t('Máscara'),
               sublabel: '/${p.length}',
               spans: ipv6BitSpans(
                 p.mask.value,
@@ -794,7 +795,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          item.label,
+                          context.t(item.label),
                           style: TextStyle(
                             fontSize: 11,
                             color: colorScheme.onSurfaceVariant,
@@ -859,7 +860,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   ),
                 ),
                 Text(
-                  context.t(sublabel),
+                  _localizedCalculatorText(context, sublabel),
                   style: TextStyle(
                     fontSize: 11,
                     color: colorScheme.onSurfaceVariant,
@@ -1030,7 +1031,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              message,
+              context.t(message),
               style: TextStyle(
                 fontSize: 12,
                 color: colorScheme.onSecondaryContainer,
@@ -1063,6 +1064,18 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   Widget _divider() => const Divider(height: 1, thickness: 0.5);
 
+  String _localizedCalculatorText(BuildContext context, String text) {
+    const firstPrefix = 'Primera dirección del bloque /';
+    if (text.startsWith(firstPrefix)) {
+      return '${context.t('Primera dirección del bloque')} /${text.substring(firstPrefix.length)}';
+    }
+    const lastPrefix = 'Última dirección del bloque /';
+    if (text.startsWith(lastPrefix)) {
+      return '${context.t('Última dirección del bloque')} /${text.substring(lastPrefix.length)}';
+    }
+    return context.t(text);
+  }
+
   // ─── Network type dialogs ──────────────────────────────────────────────────
 
   void _showNetworkTypeDialog(BuildContext context, Ipv4Class cls) {
@@ -1074,7 +1087,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         ? 'Red Pública'
         : isPrivate
         ? 'Red Privada'
-        : cls.label.split('(').first.trim();
+        : _ipv4ClassLabel(cls);
     final desc = isPublic
         ? 'Esta dirección es accesible desde Internet.'
         : isPrivate
@@ -1110,12 +1123,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         ? 'Red Pública'
         : isPrivate
         ? 'Red Privada'
-        : cls.label.split('(').first.trim();
+        : _ipv6ClassLabel(cls);
     final desc = isPublic
         ? 'Esta dirección IPv6 es accesible desde Internet.'
         : isPrivate
         ? 'Esta dirección IPv6 pertenece a una red local (ULA). No es accesible desde Internet.'
-        : cls.label;
+        : _ipv6ClassDescription(cls);
 
     showDialog(
       context: context,
@@ -1205,6 +1218,62 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         return 'Reservada para uso experimental futuro. No debe asignarse.';
       default:
         return '';
+    }
+  }
+
+  String _ipv4ClassLabel(Ipv4Class cls) {
+    switch (cls) {
+      case Ipv4Class.unspecified:
+        return 'No especificada';
+      case Ipv4Class.loopback:
+        return 'Loopback';
+      case Ipv4Class.private:
+        return 'Privada';
+      case Ipv4Class.linkLocal:
+        return 'Link-local / APIPA';
+      case Ipv4Class.sharedCgnat:
+        return 'Compartida CGN';
+      case Ipv4Class.documentation:
+        return 'Documentación';
+      case Ipv4Class.benchmarking:
+        return 'Benchmarking';
+      case Ipv4Class.multicast:
+        return 'Multicast';
+      case Ipv4Class.broadcastLimited:
+        return 'Broadcast limitado';
+      case Ipv4Class.reserved:
+        return 'Reservada';
+      case Ipv4Class.global:
+        return 'Unicast global';
+    }
+  }
+
+  String _ipv6ClassLabel(Ipv6Class cls) {
+    switch (cls) {
+      case Ipv6Class.unspecified:
+        return 'No especificada';
+      case Ipv6Class.loopback:
+        return 'Loopback';
+      case Ipv6Class.linkLocal:
+        return 'Link-local';
+      case Ipv6Class.uniqueLocal:
+        return 'Unique Local Address / ULA';
+      case Ipv6Class.multicast:
+        return 'Multicast';
+      case Ipv6Class.ipv4Mapped:
+        return 'IPv4-mapped';
+      case Ipv6Class.nat64WellKnown:
+        return 'NAT64 WKP';
+      case Ipv6Class.nat64Local:
+        return 'Prefijo local NAT64';
+      case Ipv6Class.documentation:
+        return 'Documentación';
+      case Ipv6Class.sixToFour:
+        return '6to4';
+      case Ipv6Class.teredo:
+        return 'Teredo';
+      case Ipv6Class.globalUnicast:
+        return 'Unicast global';
     }
   }
 

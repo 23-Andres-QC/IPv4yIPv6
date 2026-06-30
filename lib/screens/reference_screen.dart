@@ -40,8 +40,10 @@ class ReferenceScreen extends StatelessWidget {
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
-                        DataCell(Text(r.topic)),
-                        DataCell(SizedBox(width: 420, child: Text(r.why))),
+                        DataCell(Text(context.t(r.topic))),
+                        DataCell(
+                          SizedBox(width: 420, child: Text(context.t(r.why))),
+                        ),
                       ],
                     ),
                   )

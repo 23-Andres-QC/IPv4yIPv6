@@ -100,7 +100,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
   int _parseRequiredInt(String text, String fieldLabel) {
     final v = int.tryParse(text.trim());
     if (v == null) {
-      throw _InputException('$fieldLabel debe ser un numero entero.');
+      throw _InputException('$fieldLabel debe ser un número entero.');
     }
     return v;
   }
@@ -233,7 +233,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
             final addresses = BigInt.tryParse(raw);
             if (addresses == null) {
               throw _InputException(
-                'Direcciones de subred ${i + 1} debe ser un numero entero.',
+                'Direcciones de subred ${i + 1} debe ser un número entero.',
               );
             }
             if (addresses < BigInt.one) {
@@ -679,7 +679,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              error!,
+              _localizedSubnetText(error!),
               style: TextStyle(
                 color: colors.onErrorContainer,
                 fontWeight: FontWeight.w600,
@@ -773,7 +773,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
           (sum, row) => sum + row.blockSize,
         );
         final freeAddresses = base.totalAddresses - usedAddresses;
-        return 'VLSM IPv6 | Base: ${base.networkStart.canonical}/${base.length} | Subredes: ${rows.length} | Direcciones pedidas: $requestedAddresses | Direcciones asignadas: $usedAddresses | Libres: $freeAddresses';
+        return 'VLSM IPv6 | ${context.t('Base')}: ${base.networkStart.canonical}/${base.length} | ${context.t('Subredes')}: ${rows.length} | ${context.t('Direcciones pedidas')}: $requestedAddresses | ${context.t('Direcciones asignadas')}: $usedAddresses | ${context.t('Libres')}: $freeAddresses';
       }
 
       final base = vlsmBase!;
@@ -791,20 +791,20 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
         (sum, row) => sum + row.blockSize,
       );
       final freeAddresses = base.totalAddresses.toInt() - usedAddresses;
-      return 'VLSM | Base: ${base.network.dotted}/${base.length} | Subredes: ${rows.length} | Hosts pedidos: $requestedHosts | Hosts útiles: $usableHosts | Direcciones libres: $freeAddresses';
+      return 'VLSM | ${context.t('Base')}: ${base.network.dotted}/${base.length} | ${context.t('Subredes')}: ${rows.length} | ${context.t('Hosts pedidos')}: $requestedHosts | ${context.t('Hosts útiles')}: $usableHosts | ${context.t('Direcciones libres')}: $freeAddresses';
     }
 
     if (!hasMaskTransition) {
       if (isIpv6) {
         final base = v6Base!;
-        return 'Red base: ${base.networkStart.canonical}/${base.length} | Rango: ${base.networkStart.canonical} - ${base.networkEnd.canonical} | IPv6 no usa broadcast';
+        return '${context.t('Red base')}: ${base.networkStart.canonical}/${base.length} | ${context.t('Rango')}: ${base.networkStart.canonical} - ${base.networkEnd.canonical} | ${context.t('IPv6 no usa broadcast')}';
       }
       final base = v4Base!;
-      return 'Red base: ${base.network.dotted}/${base.prefix.length} | Broadcast: ${base.broadcast.dotted} | Hosts: ${base.hostCount} (${base.hostMin!.dotted}-${base.hostMax!.dotted}) | Red=IP AND mascara; Broadcast=Red OR wildcard';
+      return '${context.t('Red base')}: ${base.network.dotted}/${base.prefix.length} | Broadcast: ${base.broadcast.dotted} | Hosts: ${base.hostCount} (${base.hostMin!.dotted}-${base.hostMax!.dotted}) | ${context.t('Red=IP AND mascara; Broadcast=Red OR wildcard')}';
     }
 
     if (resolvedNewLength == originalLength) {
-      return 'Sin cambio: /$originalLength y /$resolvedNewLength describen la misma red';
+      return '${context.t('Sin cambio')}: /$originalLength ${context.t('y')} /$resolvedNewLength ${context.t('describen la misma red')}';
     }
 
     if (resolvedNewLength > originalLength) {
@@ -813,9 +813,9 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
       if (isIpv6) {
         final addressesPerSubnet = BigInt.two.pow(128 - resolvedNewLength);
         if (v6RowsPreviewOnly) {
-          return 'Dividir /$originalLength -> /$resolvedNewLength | Subredes creadas: $subnets | Mostrando solo la primera | Direcciones/subred: $addressesPerSubnet | IPv6 no usa broadcast';
+          return '${context.t('Dividir')} /$originalLength -> /$resolvedNewLength | ${context.t('Subredes creadas')}: $subnets | ${context.t('Mostrando solo la primera')} | ${context.t('Direcciones/subred')}: $addressesPerSubnet | ${context.t('IPv6 no usa broadcast')}';
         }
-        return 'Dividir /$originalLength -> /$resolvedNewLength | Subredes: 2^$borrowedBits=$subnets | Direcciones/subred: $addressesPerSubnet | IPv6 no usa broadcast';
+        return '${context.t('Dividir')} /$originalLength -> /$resolvedNewLength | ${context.t('Subredes')}: 2^$borrowedBits=$subnets | ${context.t('Direcciones/subred')}: $addressesPerSubnet | ${context.t('IPv6 no usa broadcast')}';
       }
       final hostsPerSubnet = v4rows!.isEmpty ? 0 : v4rows!.first.hostCount;
       final totalHosts = v4rows!.fold<int>(
@@ -823,17 +823,46 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
         (sum, row) => sum + row.hostCount,
       );
       final blockSize = BigInt.one << (32 - resolvedNewLength);
-      return 'Dividir /$originalLength -> /$resolvedNewLength | Subredes: 2^$borrowedBits=$subnets | Salto: $blockSize | Hosts/subred: $hostsPerSubnet | Total: $totalHosts';
+      return '${context.t('Dividir')} /$originalLength -> /$resolvedNewLength | ${context.t('Subredes')}: 2^$borrowedBits=$subnets | ${context.t('Salto')}: $blockSize | ${context.t('Hosts/subred')}: $hostsPerSubnet | Total: $totalHosts';
     }
 
     final mergedBits = originalLength - resolvedNewLength;
     final mergedNetworks = BigInt.one << mergedBits;
     if (isIpv6) {
       final row = v6rows!.single;
-      return 'Agregar /$originalLength -> /$resolvedNewLength | Agrupa: 2^$mergedBits=$mergedNetworks redes | Superred: ${row.networkStart.canonical}/$resolvedNewLength | IPv6 no usa broadcast';
+      return '${context.t('Agregar')} /$originalLength -> /$resolvedNewLength | ${context.t('Agrupa')}: 2^$mergedBits=$mergedNetworks ${context.t('redes')} | ${context.t('Superred')}: ${row.networkStart.canonical}/$resolvedNewLength | ${context.t('IPv6 no usa broadcast')}';
     }
     final row = v4rows!.single;
-    return 'Agregar /$originalLength -> /$resolvedNewLength | Agrupa: 2^$mergedBits=$mergedNetworks redes | Superred: ${row.network.dotted}/$resolvedNewLength | Rango: ${row.network.dotted}-${row.broadcast.dotted}';
+    return '${context.t('Agregar')} /$originalLength -> /$resolvedNewLength | ${context.t('Agrupa')}: 2^$mergedBits=$mergedNetworks ${context.t('redes')} | ${context.t('Superred')}: ${row.network.dotted}/$resolvedNewLength | ${context.t('Rango')}: ${row.network.dotted}-${row.broadcast.dotted}';
+  }
+
+  String _localizedSubnetText(String text) {
+    const intError = ' debe ser un número entero.';
+    if (text.endsWith(intError)) {
+      final field = text.substring(0, text.length - intError.length);
+      return '${context.t(field)} ${context.t('debe ser un número entero')}.';
+    }
+    const greaterThanZero = ' debe ser mayor que 0.';
+    if (text.startsWith('Hosts de subred ') && text.endsWith(greaterThanZero)) {
+      final index = text.substring(
+        'Hosts de subred '.length,
+        text.length - greaterThanZero.length,
+      );
+      return context.isEnglish
+          ? 'Subnet $index hosts must be greater than 0.'
+          : text;
+    }
+    if (text.startsWith('Direcciones de subred ') &&
+        text.endsWith(greaterThanZero)) {
+      final index = text.substring(
+        'Direcciones de subred '.length,
+        text.length - greaterThanZero.length,
+      );
+      return context.isEnglish
+          ? 'Subnet $index addresses must be greater than 0.'
+          : text;
+    }
+    return context.t(text);
   }
 
   void _showSubnettingHelp() {
@@ -973,7 +1002,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
             ]),
             const SizedBox(height: 10),
             _copyableBitRow(
-              label: 'Address',
+              label: 'Dirección',
               spans: ipv4BitSpans(
                 input.value,
                 originalLength,
@@ -983,7 +1012,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
               copyValue: input.dotted,
             ),
             _copyableBitRow(
-              label: 'Netmask',
+              label: 'Máscara',
               spans: ipv4BitSpans(
                 p.mask.value,
                 originalLength,
@@ -1014,7 +1043,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
             children: [
               Expanded(
                 child: Text(
-                  'Subnets: ${rows.length}   Hosts: $totalHosts',
+                  '${context.t('Subredes')}: ${rows.length}   Hosts: $totalHosts',
                   style: const TextStyle(
                     color: Colors.blue,
                     fontWeight: FontWeight.bold,
@@ -1040,15 +1069,15 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
   String _ipv4BaseText(Ipv4SubnetRow row) {
     final p = row.prefix;
     return [
-      'Address: ${v4Input!.dotted}',
-      'Netmask: ${p.mask.dotted} = /${p.length}',
+      '${context.t('Dirección')}: ${v4Input!.dotted}',
+      '${context.t('Máscara')}: ${p.mask.dotted} = /${p.length}',
       'Wildcard: ${p.wildcard.dotted}',
-      'Network: ${row.network.dotted}/${p.length}',
-      'HostMin: ${row.hostMin!.dotted}',
-      'HostMax: ${row.hostMax!.dotted}',
+      '${context.t('Red')}: ${row.network.dotted}/${p.length}',
+      '${context.t('Primer host')}: ${row.hostMin!.dotted}',
+      '${context.t('Último host')}: ${row.hostMax!.dotted}',
       'Broadcast: ${row.broadcast.dotted}',
-      'Hosts/Net: ${row.hostCount}',
-      'Clase: ${row.classification.label}',
+      '${context.t('Hosts por red')}: ${row.hostCount}',
+      '${context.t('Clase')}: ${context.t(row.classification.label)}',
     ].join('\n');
   }
 
@@ -1056,14 +1085,14 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
     final p = row.prefix;
     return [
       '$index. ${row.network.dotted}/${p.length}',
-      'Netmask: ${p.mask.dotted} = /${p.length}',
+      '${context.t('Máscara')}: ${p.mask.dotted} = /${p.length}',
       'Wildcard: ${p.wildcard.dotted}',
-      'Network: ${row.network.dotted}/${p.length}',
-      'HostMin: ${row.hostMin!.dotted}',
-      'HostMax: ${row.hostMax!.dotted}',
+      '${context.t('Red')}: ${row.network.dotted}/${p.length}',
+      '${context.t('Primer host')}: ${row.hostMin!.dotted}',
+      '${context.t('Último host')}: ${row.hostMax!.dotted}',
       'Broadcast: ${row.broadcast.dotted}',
-      'Hosts/Net: ${row.hostCount}',
-      'Clase: ${row.classification.label}',
+      '${context.t('Hosts por red')}: ${row.hostCount}',
+      '${context.t('Clase')}: ${context.t(row.classification.label)}',
     ].join('\n');
   }
 
@@ -1078,7 +1107,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
   String _ipv4FullText(Ipv4SubnetRow base, List<Ipv4SubnetRow> rows) {
     final parts = [_ipv4BaseText(base)];
     if (rows.isNotEmpty) {
-      parts.add('Subnets: ${rows.length}');
+      parts.add('${context.t('Subredes')}: ${rows.length}');
       parts.add(_ipv4AllSubnetsText(rows));
     }
     return parts.join('\n\n');
@@ -1088,23 +1117,23 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
     final row = allocation.row;
     final p = allocation.prefix;
     return [
-      '$index. Solicitud: ${allocation.requestedHosts} hosts',
-      'Prefix: ${row.network.dotted}/${p.length}',
-      'Netmask: ${p.mask.dotted} = /${p.length}',
+      '$index. ${context.t('Solicitud')}: ${allocation.requestedHosts} hosts',
+      '${context.t('Prefijo')}: ${row.network.dotted}/${p.length}',
+      '${context.t('Máscara')}: ${p.mask.dotted} = /${p.length}',
       'Wildcard: ${p.wildcard.dotted}',
-      'Network: ${row.network.dotted}/${p.length}',
-      'HostMin: ${row.hostMin!.dotted}',
-      'HostMax: ${row.hostMax!.dotted}',
+      '${context.t('Red')}: ${row.network.dotted}/${p.length}',
+      '${context.t('Primer host')}: ${row.hostMin!.dotted}',
+      '${context.t('Último host')}: ${row.hostMax!.dotted}',
       'Broadcast: ${row.broadcast.dotted}',
-      'Hosts útiles: ${row.hostCount}',
-      'Bloque: ${allocation.blockSize} direcciones',
+      '${context.t('Hosts útiles')}: ${row.hostCount}',
+      '${context.t('Bloque')}: ${allocation.blockSize} ${context.t('direcciones')}',
     ].join('\n');
   }
 
   String _vlsmPlanText(List<_VlsmAllocation> rows) {
     return [
-      'VLSM base: ${vlsmBase!.network.dotted}/${vlsmBase!.length}',
-      'Subredes: ${rows.length}',
+      'VLSM ${context.t('Base')}: ${vlsmBase!.network.dotted}/${vlsmBase!.length}',
+      '${context.t('Subredes')}: ${rows.length}',
       ...rows.asMap().entries.map(
         (entry) => _vlsmAllocationText(entry.key + 1, entry.value),
       ),
@@ -1114,19 +1143,19 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
   String _ipv6VlsmAllocationText(int index, _Ipv6VlsmAllocation allocation) {
     final p = allocation.prefix;
     return [
-      '$index. Solicitud: ${allocation.requestedAddresses} direcciones',
-      'Prefix: ${p.networkStart.canonical}/${p.length}',
-      'Inicio: ${p.networkStart.canonical}',
-      'Fin: ${p.networkEnd.canonical}',
-      'Direcciones asignadas: ${allocation.blockSize}',
-      'IPv6 no usa broadcast',
+      '$index. ${context.t('Solicitud')}: ${allocation.requestedAddresses} ${context.t('direcciones')}',
+      '${context.t('Prefijo')}: ${p.networkStart.canonical}/${p.length}',
+      '${context.t('Inicio')}: ${p.networkStart.canonical}',
+      '${context.t('Fin')}: ${p.networkEnd.canonical}',
+      '${context.t('Direcciones asignadas')}: ${allocation.blockSize}',
+      context.t('IPv6 no usa broadcast'),
     ].join('\n');
   }
 
   String _ipv6VlsmPlanText(List<_Ipv6VlsmAllocation> rows) {
     return [
-      'VLSM IPv6 base: ${vlsmV6Base!.networkStart.canonical}/${vlsmV6Base!.length}',
-      'Subredes: ${rows.length}',
+      'VLSM IPv6 ${context.t('Base')}: ${vlsmV6Base!.networkStart.canonical}/${vlsmV6Base!.length}',
+      '${context.t('Subredes')}: ${rows.length}',
       ...rows.asMap().entries.map(
         (entry) => _ipv6VlsmAllocationText(entry.key + 1, entry.value),
       ),
@@ -1169,7 +1198,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
       ),
       const SizedBox(height: 6),
       _copyableBitRow(
-        label: 'Netmask',
+        label: 'Máscara',
         spans: ipv4BitSpans(
           targetMask.value,
           resolvedNewLength,
@@ -1233,7 +1262,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
       children: [
         if (showNetmask)
           _copyableBitRow(
-            label: 'Netmask',
+            label: 'Máscara',
             spans: ipv4BitSpans(
               p.mask.value,
               p.length,
@@ -1243,7 +1272,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
             copyValue: copyFields ? _ipv4FieldText(row, 'Netmask') : null,
           ),
         _copyableBitRow(
-          label: 'Network',
+          label: 'Red',
           spans: ipv4BitSpans(
             row.network.value,
             p.length,
@@ -1253,7 +1282,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
           copyValue: copyFields ? _ipv4FieldText(row, 'Network') : null,
         ),
         _copyableBitRow(
-          label: 'HostMin',
+          label: 'Primer host',
           spans: ipv4BitSpans(
             row.hostMin!.value,
             p.length,
@@ -1263,7 +1292,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
           copyValue: copyFields ? _ipv4FieldText(row, 'HostMin') : null,
         ),
         _copyableBitRow(
-          label: 'HostMax',
+          label: 'Último host',
           spans: ipv4BitSpans(
             row.hostMax!.value,
             p.length,
@@ -1283,7 +1312,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
           copyValue: copyFields ? _ipv4FieldText(row, 'Broadcast') : null,
         ),
         Text(
-          'Hosts/Net: ${row.hostCount}   ${row.classification.label}',
+          '${context.t('Hosts por red')}: ${row.hostCount}   ${context.t(row.classification.label)}',
           style: const TextStyle(
             color: Colors.green,
             fontWeight: FontWeight.bold,
@@ -1418,7 +1447,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
             ),
             const SizedBox(height: 6),
             _copyableBitRow(
-              label: 'Network',
+              label: 'Red',
               spans: ipv4BitSpans(
                 base.network.value,
                 base.length,
@@ -1428,7 +1457,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
               copyValue: '${base.network.dotted}/${base.length}',
             ),
             _copyableBitRow(
-              label: 'Netmask',
+              label: 'Máscara',
               spans: ipv4BitSpans(
                 base.mask.value,
                 base.length,
@@ -1714,12 +1743,12 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
                 ),
             ]),
             const SizedBox(height: 10),
-            _copyableTextRow('Address', '${input.canonical}/${base.length}'),
+            _copyableTextRow('Dirección', '${input.canonical}/${base.length}'),
             _copyableTextRow(
               'Network',
               '${base.networkStart.canonical}/${base.length}',
             ),
-            _copyableTextRow('End', base.networkEnd.canonical),
+            _copyableTextRow('Fin', base.networkEnd.canonical),
             if (hasEffectiveMaskTransition) ...[
               const Divider(height: 22),
               Text(
@@ -1736,7 +1765,7 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
                 child: Text(
                   v6RowsPreviewOnly
                       ? '${context.t('Mostrando')} ${rows.length} ${context.t('de')} ${v6TotalSubnets!} ${context.t('subredes creadas')}'
-                      : 'Subnets: ${rows.length}',
+                      : '${context.t('Subredes')}: ${rows.length}',
                   style: const TextStyle(
                     color: Colors.blue,
                     fontWeight: FontWeight.bold,
@@ -1802,19 +1831,19 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
 
   String _ipv6BaseText(Ipv6Prefix base) {
     return [
-      'Address: ${v6Input!.canonical}/${base.length}',
-      'Network: ${base.networkStart.canonical}/${base.length}',
-      'End: ${base.networkEnd.canonical}',
-      'Direcciones: ${base.totalAddresses}',
+      '${context.t('Dirección')}: ${v6Input!.canonical}/${base.length}',
+      '${context.t('Red')}: ${base.networkStart.canonical}/${base.length}',
+      '${context.t('Fin')}: ${base.networkEnd.canonical}',
+      '${context.t('Direcciones')}: ${base.totalAddresses}',
     ].join('\n');
   }
 
   String _ipv6SubnetText(int index, Ipv6Prefix p) {
     return [
       '$index. ${p.networkStart.canonical}/${p.length}',
-      'Inicio: ${p.networkStart.canonical}',
-      'Fin: ${p.networkEnd.canonical}',
-      'Direcciones: ${p.totalAddresses}',
+      '${context.t('Inicio')}: ${p.networkStart.canonical}',
+      '${context.t('Fin')}: ${p.networkEnd.canonical}',
+      '${context.t('Direcciones')}: ${p.totalAddresses}',
     ].join('\n');
   }
 
@@ -1831,8 +1860,8 @@ class _MaskTransitionScreenState extends State<MaskTransitionScreen> {
     if (rows.isNotEmpty) {
       parts.add(
         v6RowsPreviewOnly
-            ? 'Subnets total: $v6TotalSubnets\nShown: ${rows.length}'
-            : 'Subnets: ${rows.length}',
+            ? '${context.t('Total de subredes creadas')}: $v6TotalSubnets\n${context.t('Mostrando')}: ${rows.length}'
+            : '${context.t('Subredes')}: ${rows.length}',
       );
       parts.add(_ipv6AllSubnetsText(rows));
     }
