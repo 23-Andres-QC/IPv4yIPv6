@@ -263,6 +263,19 @@ La red `i` se calcula asi:
 red_i = red_base + i * bloque
 ```
 
+En IPv6, si la cantidad de subredes a visualizar supera el limite de pantalla,
+la app no bloquea el calculo: muestra solo la primera subred como vista previa
+y abajo indica cuantas subredes se crean en total.
+
+Ejemplo:
+
+```text
+2001:db8:abcd::/48 -> /64
+subredes = 2^(64 - 48) = 65536
+primera subred mostrada = 2001:db8:abcd::/64
+total indicado abajo = 65536 subredes creadas
+```
+
 Ejemplo IPv4:
 
 ```text
@@ -326,8 +339,15 @@ subredes entregadas = 4
 
 ## Bloque 6: subnetting por hosts utilizables
 
-Para IPv4, si se pide una cantidad de hosts por subred, la app busca el prefijo
-mas especifico que todavia soporte esos hosts.
+La pantalla de subnetting tiene dos modos:
+
+```text
+1. Transicion de mascara: /p -> /q.
+2. VLSM por hosts/direcciones: varias subredes con necesidades diferentes.
+```
+
+Cuando se calcula por hosts, la logica busca el prefijo mas especifico que
+todavia soporte los hosts requeridos.
 
 Para hosts normales:
 
@@ -354,11 +374,32 @@ prefijo = 32 - 6 = /26
 hosts utiles = 64 - 2 = 62
 ```
 
-## Bloque 7: VLSM
+## Bloque 7: VLSM por hosts o direcciones
 
-VLSM asigna subredes de tamanos distintos dentro de una red base.
+VLSM significa crear subredes de tamanos diferentes dentro de una red base.
 
-La app hace:
+En la app se usa desde el modo `VLSM por hosts` de la pantalla Subnetting.
+Funciona para IPv4 e IPv6.
+
+Para IPv4, el usuario ingresa:
+
+```text
+1. Red base IPv4.
+2. Prefijo base.
+3. Cantidad de subredes.
+4. Hosts requeridos para cada subred.
+```
+
+Para IPv6, el usuario ingresa:
+
+```text
+1. Red base IPv6.
+2. Prefijo base.
+3. Cantidad de subredes.
+4. Direcciones requeridas para cada subred.
+```
+
+La logica es:
 
 1. Ordena los requerimientos de hosts de mayor a menor.
 2. Calcula el prefijo minimo para cada requerimiento.
@@ -386,6 +427,118 @@ Resultado:
 50 hosts  -> 10.0.0.128/26
 10 hosts  -> 10.0.0.192/28
 ```
+
+### Flujo para hosts diferentes
+
+El flujo de la interfaz para IPv4 es:
+
+```text
+1. Pedir red base, por ejemplo 192.168.0.0/22.
+2. Pedir cuantas subredes se necesitan.
+3. Pedir los hosts de cada subred.
+4. Ordenar de mayor a menor.
+5. Calcular el bloque minimo para cada necesidad.
+6. Asignar los bloques desde el inicio de la red base, sin solaparse.
+```
+
+Ejemplo con necesidades diferentes:
+
+```text
+Subred A: 300 hosts
+Subred B: 100 hosts
+Subred C: 50 hosts
+```
+
+Primero se suma red y broadcast para redes normales:
+
+```text
+300 hosts -> se necesitan 302 direcciones
+100 hosts -> se necesitan 102 direcciones
+50 hosts  -> se necesitan 52 direcciones
+```
+
+Luego se busca la siguiente potencia de 2:
+
+```text
+302 -> 512 direcciones -> 9 bits de host -> /23
+102 -> 128 direcciones -> 7 bits de host -> /25
+52  -> 64 direcciones  -> 6 bits de host -> /26
+```
+
+Formula:
+
+```text
+bloque = siguientePotenciaDe2(hosts + 2)
+prefijo = 32 - log2(bloque)
+```
+
+Cantidad total minima de direcciones:
+
+```text
+512 + 128 + 64 = 704 direcciones
+```
+
+Una red `/23` solo tiene 512 direcciones, por eso no alcanza. La siguiente red
+comun que alcanza es una `/22`:
+
+```text
+/22 = 2^(32 - 22) = 1024 direcciones
+```
+
+Ejemplo usando `192.168.0.0/22`:
+
+```text
+Necesidad  Bloque  Prefijo  Red asignada        Hosts utiles  Rango utilizable              Broadcast
+300        512     /23      192.168.0.0/23      510           192.168.0.1 - 192.168.1.254   192.168.1.255
+100        128     /25      192.168.2.0/25      126           192.168.2.1 - 192.168.2.126   192.168.2.127
+50         64      /26      192.168.2.128/26    62            192.168.2.129 - 192.168.2.190 192.168.2.191
+```
+
+Queda espacio libre dentro de la `/22`:
+
+```text
+192.168.2.192 - 192.168.3.255
+```
+
+La regla importante de VLSM es asignar primero las subredes mas grandes. Si se
+asignan primero las pequenas, se puede fragmentar el espacio y luego una subred
+grande podria no caber alineada aunque todavia queden direcciones sueltas.
+
+### VLSM en IPv6
+
+En IPv6 no se resta red ni broadcast, porque IPv6 no usa broadcast. Por eso el
+calculo se hace por cantidad de direcciones requeridas:
+
+```text
+bloque = siguientePotenciaDe2(direcciones_requeridas)
+prefijo = 128 - log2(bloque)
+```
+
+Ejemplo:
+
+```text
+Red base IPv6: 2001:db8:1200::/120
+Subred 1: 100 direcciones
+Subred 2: 30 direcciones
+```
+
+Calculo:
+
+```text
+100 -> 128 direcciones -> 7 bits de host -> /121
+30  -> 32 direcciones  -> 5 bits de host -> /123
+```
+
+Asignacion:
+
+```text
+Necesidad  Bloque  Prefijo  Red asignada              Rango
+100        128     /121     2001:db8:1200::/121       2001:db8:1200:: - 2001:db8:1200::7f
+30         32      /123     2001:db8:1200::80/123     2001:db8:1200::80 - 2001:db8:1200::9f
+```
+
+Nota practica: aunque la matematica permite bloques pequenos como `/121` o
+`/123`, para LANs IPv6 normalmente se recomienda usar `/64`.
 
 ## Bloque 8: agregacion de prefijos
 
@@ -722,7 +875,7 @@ Las pruebas cubren:
 - Subnetting IPv4 e IPv6.
 - Semantica especial `/31` y `/32`.
 - Redondeo a potencias de 2.
-- VLSM y agregacion.
+- VLSM por hosts y agregacion.
 - RFC 6052.
 - Transicion IPv4 a IPv6 y extraccion IPv6 a IPv4.
 - Conectividad entre extremos.

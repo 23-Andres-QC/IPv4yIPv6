@@ -325,5 +325,19 @@ void main() {
       expect(plan.wasRounded, isTrue);
       expect(plan.rows, hasLength(512));
     });
+
+    test('asigna VLSM IPv6 por cantidad de direcciones', () {
+      final rows = Ipv6Subnetting.vlsm(
+        Ipv6Prefix(Ipv6Address.parse('2001:db8:1200::'), 120),
+        [BigInt.from(100), BigInt.from(30)],
+      );
+
+      expect(rows.map((p) => '${p.networkStart.canonical}/${p.length}'), [
+        '2001:db8:1200::/121',
+        '2001:db8:1200::80/123',
+      ]);
+      expect(rows.first.totalAddresses, BigInt.from(128));
+      expect(rows.last.totalAddresses, BigInt.from(32));
+    });
   });
 }

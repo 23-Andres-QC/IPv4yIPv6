@@ -309,6 +309,66 @@ class Ipv6Subnetting {
       deliveredCount: deliveredCount,
     );
   }
+
+  static List<Ipv6Prefix> vlsm(
+    Ipv6Prefix base,
+    List<BigInt> addressRequirements,
+  ) {
+    final indexed = <MapEntry<int, BigInt>>[];
+    for (var i = 0; i < addressRequirements.length; i++) {
+      indexed.add(MapEntry(i, addressRequirements[i]));
+    }
+    final ordered = [...indexed]..sort((a, b) => b.value.compareTo(a.value));
+
+    var cursor = base.networkStart;
+    final end = base.networkEnd;
+    final resultByIndex = <int, Ipv6Prefix>{};
+
+    for (final entry in ordered) {
+      final addresses = entry.value;
+      final neededLength = _smallestPrefixForAddresses(addresses);
+      if (neededLength < base.length) {
+        throw Ipv6SubnettingException(
+          'La red base ${base.toString()} no alcanza para ${addresses.toString()} direcciones '
+          '(se requeriría /$neededLength, una red mayor que la base).',
+        );
+      }
+      final blockSize = BigInt.two.pow(128 - neededLength);
+      final aligned =
+          ((cursor.value + blockSize - BigInt.one) ~/ blockSize) * blockSize;
+      final candidate = Ipv6Address(aligned);
+      final candidatePrefix = Ipv6Prefix(candidate, neededLength);
+      if (candidatePrefix.networkEnd.value > end.value) {
+        throw Ipv6SubnettingException(
+          'No hay espacio suficiente en ${base.toString()} para asignar ${addresses.toString()} direcciones '
+          '(se requiere /$neededLength).',
+        );
+      }
+      resultByIndex[entry.key] = candidatePrefix;
+      cursor = candidatePrefix.networkEnd + BigInt.one;
+    }
+    return List.generate(addressRequirements.length, (i) => resultByIndex[i]!);
+  }
+
+  static int _smallestPrefixForAddresses(BigInt addresses) {
+    if (addresses <= BigInt.zero) {
+      throw Ipv6SubnettingException(
+        'La cantidad de direcciones requerida debe ser mayor que 0.',
+      );
+    }
+    var length = 128;
+    var size = BigInt.one;
+    while (size < addresses) {
+      size <<= 1;
+      length--;
+      if (length < 0) {
+        throw Ipv6SubnettingException(
+          'La cantidad de direcciones requerida supera el espacio IPv6.',
+        );
+      }
+    }
+    return length;
+  }
 }
 
 class Ipv6SubnetPlan {

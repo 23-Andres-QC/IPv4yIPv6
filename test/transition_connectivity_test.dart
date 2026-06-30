@@ -6,6 +6,7 @@ import 'package:ipv4_ipv6_toolkit/core/ipv6.dart';
 import 'package:ipv4_ipv6_toolkit/core/transition.dart';
 import 'package:ipv4_ipv6_toolkit/screens/connectivity_screen.dart';
 import 'package:ipv4_ipv6_toolkit/screens/ipv4_to_ipv6_screen.dart';
+import 'package:ipv4_ipv6_toolkit/screens/mask_transition_screen.dart';
 
 void main() {
   Widget wrap(Widget child) {
@@ -154,5 +155,54 @@ void main() {
     await tester.pump();
 
     expect(find.text('Requiere ruteo IPv4'), findsNothing);
+  });
+
+  testWidgets('Subnetting calcula VLSM con hosts diferentes', (tester) async {
+    await tester.pumpWidget(wrap(const MaskTransitionScreen()));
+
+    await tester.tap(find.text('VLSM por hosts'));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Calcular VLSM'));
+    await tester.pump();
+
+    expect(find.textContaining('192.168.0.0/23'), findsWidgets);
+    expect(find.textContaining('192.168.2.0/25'), findsWidgets);
+    expect(find.textContaining('192.168.2.128/26'), findsWidgets);
+    expect(find.textContaining('300 hosts pedidos'), findsOneWidget);
+    expect(find.textContaining('100 hosts pedidos'), findsOneWidget);
+    expect(find.textContaining('50 hosts pedidos'), findsOneWidget);
+  });
+
+  testWidgets('Subnetting calcula VLSM IPv6 por direcciones', (tester) async {
+    await tester.pumpWidget(wrap(const MaskTransitionScreen()));
+
+    await tester.tap(find.text('VLSM por hosts'));
+    await tester.pump();
+    await tester.tap(find.text('IPv6'));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Calcular VLSM'));
+    await tester.pump();
+
+    expect(find.textContaining('2001:db8:1200::/121'), findsWidgets);
+    expect(find.textContaining('2001:db8:1200::80/123'), findsWidgets);
+    expect(find.textContaining('100 direcciones pedidas'), findsOneWidget);
+    expect(find.textContaining('30 direcciones pedidas'), findsOneWidget);
+  });
+
+  testWidgets('Subnetting IPv6 grande muestra primera subred y total', (
+    tester,
+  ) async {
+    await tester.pumpWidget(wrap(const MaskTransitionScreen()));
+
+    await tester.tap(find.text('IPv6'));
+    await tester.pump();
+    await tester.enterText(find.byType(TextField).at(2), '64');
+    await tester.tap(find.widgetWithText(FilledButton, 'Calcular'));
+    await tester.pump();
+
+    expect(find.textContaining('2001:db8:1200::/64'), findsWidgets);
+    expect(find.textContaining('Total de subredes creadas'), findsOneWidget);
+    expect(find.textContaining('65536'), findsWidgets);
+    expect(find.textContaining('supera el límite'), findsNothing);
   });
 }
